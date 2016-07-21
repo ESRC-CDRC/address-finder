@@ -36,8 +36,6 @@ class IndexedSearcher(pool: Seq[String]) extends Searcher{
 }
 
 
-class WordBag
-
 class WordBagSearcher(pool: Seq[String]) extends Searcher {
 
   type WordBag = Counter[String, Int]
@@ -57,4 +55,9 @@ class WordBagSearcher(pool: Seq[String]) extends Searcher {
     val scores = distances sortWith {_._2 < _._2}
     new SearchResult(scores, items)
   }
+}
+
+object WordBagSearcher {
+  def apply() = new WordBagSearcher(Array[String]())
+  def apply(pool: Seq[String]) = new WordBagSearcher(pool)
 }
