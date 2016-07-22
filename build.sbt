@@ -4,6 +4,7 @@ version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.10.6"
 
+crossScalaVersions := Seq("2.11.8")
 
 libraryDependencies  ++= Seq(
   "org.scalanlp" %% "breeze" % "0.12",
