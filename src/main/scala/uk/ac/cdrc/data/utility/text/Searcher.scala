@@ -3,13 +3,13 @@ package uk.ac.cdrc.data.utility.text
   * Created  on 7/19/16.
   */
 
-import breeze.linalg.{Counter, DenseVector, SparseVector, VectorBuilder, sum}
+import breeze.linalg.{Counter, sum}
 import breeze.linalg.Counter.canMapValues
 
 
-case class SearchResult(val hits: IndexedSeq[(Int, Float)], val items: IndexedSeq[String]) {
+case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) {
   def top: String = {println(hits.length); items(hits(0)._1)}
-  def multiTops: Boolean = if (hits.lengthCompare(2) < 0) false else (hits(0)._2 == hits(1)._2)
+  def multiTops: Boolean = if (hits.lengthCompare(2) < 0) false else hits(0)._2 == hits(1)._2
   def rank: IndexedSeq[String] = hits map {v => items(v._1)}
   def rankScore: IndexedSeq[(String, Float)] = hits map {v => (items(v._1), v._2)}
 }
@@ -40,7 +40,7 @@ class WordBagSearcher(pool: Seq[String]) extends Searcher {
 
   type WordBag = Counter[String, Int]
 
-  val items = pool map (_.trim) filter (!_.isEmpty) toArray
+  val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
   val wordBags: IndexedSeq[WordBag] = items.indices map {i => mkWordBag(items(i))}
 
