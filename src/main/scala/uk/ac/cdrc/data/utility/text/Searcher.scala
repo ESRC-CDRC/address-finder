@@ -57,10 +57,9 @@ class WordBagSearcher(pool: Seq[String]) extends Searcher {
   }
   override def search(q: String): Option[SearchResult] = {
     val qwb = mkWordBag(q)
-    val distances = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
+    val scores = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
 
-    val scores = distances sortWith {_._2 < _._2}
-    Some(SearchResult(scores, items))
+    Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
   }
 }
 
