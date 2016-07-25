@@ -8,7 +8,7 @@ package uk.ac.cdrc.data.utility.text
 import org.scalatest._
 import Inside._
 
-class SearcherTestSpec extends FlatSpec with Matchers{
+class SearcherSpec extends FlatSpec with Matchers{
 
   "An default empty wordbag search" should "return nothing" in {
     val emptyPool = WordBagSearcher()
@@ -36,8 +36,8 @@ class SearcherTestSpec extends FlatSpec with Matchers{
   }
 
   "A searcher" should "not throw exception" in {
-    val s = WordBagSearcher(Array("goostrey  196  road  cheshire cheshire main  crewe  east"))
-    val r = s search "goostrey 200 road  cheshire  main  crewe"
+    val s = WordBagSearcher(Array("ggg  196  aaa  ccc ccc main  rrr  eee"))
+    val r = s search "ggg 200 aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
         rs.hits should have size 1
