@@ -23,4 +23,18 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     check((a: String, b: String) => LevenshteinDistance.distance(b + a, b) == a.length)
     check((a: String, b: String, c: String) => LevenshteinDistance.distance(a + b + c, b) == a.length + c.length)
   }
+
+  "extractNumberSpan" should "work" in {
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5 ccc") should be (List(1, 2, 3, 4, 5))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5,6,7 ccc") should be (List(1, 2, 3, 4, 5, 6, 7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 6,7 ccc") should be (List(6, 7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 7 ccc") should be (List(7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc ccc") should be (List())
+  }
+
+  "NumberSpanDistance" should "work" in {
+    NumberSpanDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
+    NumberSpanDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1)
+
+  }
 }

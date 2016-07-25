@@ -6,11 +6,11 @@ import breeze.linalg.min
   * Created  on 7/25/16.
   */
 trait Similarity {
-  def distance[T](a: IndexedSeq[T], b: IndexedSeq[T]): Float
+  def distance(a: String, b: String): Float
 }
 
 object LevenshteinDistance extends Similarity {
-  override def distance[T](a: IndexedSeq[T], b: IndexedSeq[T]): Float = {
+  def distance[T <: IndexedSeq[_]](a: T, b: T): Float = {
     if (a.length == 0) b.length
     else if (b.length == 0) a.length
     else {
@@ -21,5 +21,23 @@ object LevenshteinDistance extends Similarity {
       dist(a.length)(b.length)
     }
   }
+  def distance(a: String, b: String): Float = distance(a.toVector, b.toVector)
 }
 
+object NumberSpanDistance extends Similarity {
+  val spanPattern = "(\\d+)\\s*-\\s*(\\d+)".r
+  val numPattern = "\\d+".r
+
+  def extractNumberSpan(s: String): IndexedSeq[Int] = {
+    val numSpan = for {
+      m <- (spanPattern findAllIn s).matchData
+      i <- m.group(1).toInt to m.group(2).toInt
+    } yield i
+    val nums = for {
+      m <- (numPattern findAllIn (spanPattern replaceAllIn(s, " ")))
+    } yield m.toInt
+    (numSpan ++ nums).toIndexedSeq
+  }
+
+  override def distance(a: String, b: String): Float = LevenshteinDistance.distance(extractNumberSpan(a), extractNumberSpan(b))
+}
