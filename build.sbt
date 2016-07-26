@@ -1,5 +1,7 @@
 name := "address-finder"
 
+organization := "uk.ac.cdrc.data"
+
 version := "0.1-SNAPSHOT"
 
 scalaVersion := "2.10.6"
