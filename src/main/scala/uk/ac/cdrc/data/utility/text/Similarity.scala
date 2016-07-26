@@ -1,8 +1,8 @@
 package uk.ac.cdrc.data.utility.text
 
-import breeze.linalg.{Counter, min, sum}
-import uk.ac.cdrc.data.utility.text.entity.Wordbag
-import Wordbag._
+import breeze.linalg.{Counter, min}
+import uk.ac.cdrc.data.utility.text.entity.WordBag
+import WordBag._
 
 import scala.util.matching.Regex
 
@@ -47,7 +47,7 @@ object NumberSpanDistance extends Similarity {
 }
 
 class WordBagDistance(val whiteSpace: Regex) extends Similarity {
-  override def distance(a: String, b: String): Float = distance(Wordbag(a), Wordbag(b))
+  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
   def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (a - b).pnorm
 }
 object WordBagDistance {

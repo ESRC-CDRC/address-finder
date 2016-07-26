@@ -38,15 +38,15 @@ case class IndexedSearcher(pool: Seq[String]) extends Searcher{
 class WordBagSearcher(pool: Seq[String]) extends Searcher {
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
-  val wordBags: IndexedSeq[Wordbag] = items.indices map {i => Wordbag(items(i))}
+  val wordBags: IndexedSeq[WordBag] = items.indices map { i => WordBag(items(i))}
 
   val distFun = WordBagDistance()
 
-  def score(wb: Wordbag, qwb: Wordbag): Float = {
+  def score(wb: WordBag, qwb: WordBag): Float = {
     distFun.distance(qwb, wb)
   }
   override def search(q: String): Option[SearchResult] = {
-    val qwb = Wordbag(q)
+    val qwb = WordBag(q)
     val scores = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
