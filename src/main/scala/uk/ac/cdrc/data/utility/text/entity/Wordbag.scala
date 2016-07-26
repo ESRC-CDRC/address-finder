@@ -2,17 +2,14 @@ package uk.ac.cdrc.data.utility.text.entity
 
 import breeze.linalg.{Counter, sum}
 import breeze.linalg.Counter.canMapValues
-import breeze.storage.Zero
 
+case class Wordbag(val data: Counter[String, Int]) {
 
-class Wordbag (override val data : scala.collection.mutable.Map[String,Int]) (implicit zero : Zero[Int]) extends Counter[String,Int] {
+  def norm: Int = sum(data)
 
-  def default = zero.zero
+  def pnorm: Int = sum(data.values map {v: Int => if (v > 0) v else 0})
 
-  def norm: Int = Wordbag.norm(this)
-
-  def pnorm: Int = Wordbag.pnorm(this)
-
+  def toWordbag: Wordbag = this
 }
 
 object Wordbag {
@@ -21,14 +18,14 @@ object Wordbag {
   def apply(s: String) = string2Wordbag(s)
 
   implicit def string2Wordbag(s: String): Wordbag = {
-    new Wordbag(Counter.countTraversable(whiteSpace split s).data)
+    Wordbag(Counter.countTraversable(whiteSpace split s))
   }
 
-  def norm(c: Counter[String, Int]): Int = sum(c)
+  implicit def counter2Wordbag(c: Counter[String, Int]): Wordbag = {
+    Wordbag(c)
+  }
 
-  def pnorm(c: Counter[String, Int]): Int = sum(c.values map {v: Int => if (v > 0) v else 0})
-
-  def diff(a: Counter[String, Int], b: Counter[String, Int]): Counter[String, Int] = a - b
+  implicit def wordbag2Counter(wb: Wordbag): Counter[String, Int] = wb.data
 
   def toWordbag(w: Wordbag): Wordbag = w
 }
