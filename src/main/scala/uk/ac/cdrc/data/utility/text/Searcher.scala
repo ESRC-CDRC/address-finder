@@ -3,8 +3,7 @@ package uk.ac.cdrc.data.utility.text
   * Created  on 7/19/16.
   */
 
-import breeze.linalg.{Counter, sum}
-import breeze.linalg.Counter.canMapValues
+import uk.ac.cdrc.data.utility.text.entity._
 
 
 case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) {
@@ -37,26 +36,17 @@ case class IndexedSearcher(pool: Seq[String]) extends Searcher{
 
 
 class WordBagSearcher(pool: Seq[String]) extends Searcher {
-
-  type WordBag = Counter[String, Int]
-
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
-  val wordBags: IndexedSeq[WordBag] = items.indices map {i => mkWordBag(items(i))}
+  val wordBags: IndexedSeq[Wordbag] = items.indices map {i => Wordbag(items(i))}
 
-  def mkWordBag(s: String) = Counter.countTraversable(sepChar split s)
+  val distFun = WordBagDistance()
 
-
-
-
-
-
-  def score(wb: WordBag, qwb: WordBag): Float = {
-    val diff = (qwb - wb).values
-    sum(diff map (v => if (v > 0) v else 0))
+  def score(wb: Wordbag, qwb: Wordbag): Float = {
+    distFun.distance(qwb, wb)
   }
   override def search(q: String): Option[SearchResult] = {
-    val qwb = mkWordBag(q)
+    val qwb = Wordbag(q)
     val scores = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
