@@ -39,9 +39,8 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
   }
 
   "WordbagDistance" should "work" in {
-    val df = WordBagDistance()
-    df.distance("a b c", "a b c") should be (0)
-    df.distance("a b c", "a b c d") should be (0)
-    df.distance("a b c c d", "a b c d") should be (1)
+    WordBagDistance.distance("a b c", "a b c") should be (0)
+    WordBagDistance.distance("a b c", "a b c d") should be (0)
+    WordBagDistance.distance("a b c c d", "a b c d") should be (1)
   }
 }

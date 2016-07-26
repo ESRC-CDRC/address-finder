@@ -46,10 +46,7 @@ object NumberSpanDistance extends Similarity {
   override def distance(a: String, b: String): Float = LevenshteinDistance.distance(extractNumberSpan(a), extractNumberSpan(b))
 }
 
-class WordBagDistance(val whiteSpace: Regex) extends Similarity {
+object WordBagDistance extends Similarity {
   override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
   def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (a - b).pnorm
-}
-object WordBagDistance {
-  def apply() = new WordBagDistance("\\s+".r)
 }

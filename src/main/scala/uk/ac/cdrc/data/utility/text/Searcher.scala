@@ -40,10 +40,8 @@ class WordBagSearcher(pool: Seq[String]) extends Searcher {
 
   val wordBags: IndexedSeq[WordBag] = items.indices map { i => WordBag(items(i))}
 
-  val distFun = WordBagDistance()
-
   def score(wb: WordBag, qwb: WordBag): Float = {
-    distFun.distance(qwb, wb)
+    WordBagDistance.distance(qwb, wb)
   }
   override def search(q: String): Option[SearchResult] = {
     val qwb = WordBag(q)
