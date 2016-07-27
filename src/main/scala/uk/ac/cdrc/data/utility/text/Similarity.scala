@@ -53,3 +53,13 @@ object WordSetDistance extends Similarity {
   override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
   def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size
 }
+
+
+object CommonPrefixDistance extends Similarity {
+  override def distance(a: String, b: String): Float = distance(a.toSeq, b.toSeq)
+
+  def distance[T](a: Seq[T], b: Seq[T]): Float = {
+    val commonPrefixLength = (a zip b).takeWhile(v => v._1 == v._2).length
+    1 - commonPrefixLength / (a.length + b.length - commonPrefixLength:Float)
+  }
+}

@@ -52,4 +52,13 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     WordSetDistance.distance("a b c d", "a b c c d e") should be (1)
     WordSetDistance.distance("a b c d", "a b d e") should be (1)
   }
+
+  "CommonPrefixDistance" should "work" in {
+    CommonPrefixDistance.distance("a b c", "a b c") should be (0)
+    CommonPrefixDistance.distance("a b c d", "a b c") should be < 0.28571429f
+    CommonPrefixDistance.distance("a b c d", "a b c c d") should be < 0.4f
+    CommonPrefixDistance.distance("a b c d e", "a b c c d") should be (0.5)
+    CommonPrefixDistance.distance("a b c d", "a b c c d e") should be (0.5)
+    CommonPrefixDistance.distance("a b c d", "a b d e") should be < 0.7f
+  }
 }
