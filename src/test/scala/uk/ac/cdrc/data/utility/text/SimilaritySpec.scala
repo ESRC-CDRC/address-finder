@@ -16,7 +16,7 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
   }
 
   "Our Levenshtein distance" should "compare with spire.std.LevenshteinDistance" in {
-    check((a: String, b: String) => LevenshteinDistance.distance(a, b) == (LD.distance(a, b)))
+    check((a: String, b: String) => LevenshteinDistance.distance(a, b) == LD.distance(a, b))
   }
   "Substrings" should "have a distance from the missing parts" in {
     check((a: String, b: String) => LevenshteinDistance.distance(a + b, b) == a.length)
@@ -38,9 +38,18 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
 
   }
 
-  "WordbagDistance" should "work" in {
+  "WordBagDistance" should "work" in {
     WordBagDistance.distance("a b c", "a b c") should be (0)
-    WordBagDistance.distance("a b c", "a b c d") should be (0)
-    WordBagDistance.distance("a b c c d", "a b c d") should be (1)
+    WordBagDistance.distance("a b c d", "a b c") should be (0)
+    WordBagDistance.distance("a b c d", "a b c c d") should be (1)
+  }
+
+  "WordSetDistance" should "work" in {
+    WordSetDistance.distance("a b c", "a b c") should be (0)
+    WordSetDistance.distance("a b c d", "a b c") should be (0)
+    WordSetDistance.distance("a b c d", "a b c c d") should be (0)
+    WordSetDistance.distance("a b c d e", "a b c c d") should be (0)
+    WordSetDistance.distance("a b c d", "a b c c d e") should be (1)
+    WordSetDistance.distance("a b c d", "a b d e") should be (1)
   }
 }

@@ -3,7 +3,7 @@ package uk.ac.cdrc.data.utility.text.entity
 import breeze.linalg.{Counter, sum}
 import breeze.linalg.Counter.canMapValues
 
-case class WordBag(val data: Counter[String, Int]) {
+case class WordBag(data: Counter[String, Int]) {
 
   def norm: Int = sum(data)
 
@@ -27,5 +27,5 @@ object WordBag {
 
   implicit def wordBag2Counter(wb: WordBag): Counter[String, Int] = wb.data
 
-  def toWordbag(w: WordBag): WordBag = w
+  def toWordBag(w: WordBag): WordBag = w
 }

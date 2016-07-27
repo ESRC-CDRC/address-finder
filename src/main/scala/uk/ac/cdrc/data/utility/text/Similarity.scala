@@ -48,3 +48,8 @@ object WordBagDistance extends Similarity {
   override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
   def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b - a).pnorm
 }
+
+object WordSetDistance extends Similarity {
+  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
+  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size
+}
