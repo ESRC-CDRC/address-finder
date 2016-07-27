@@ -15,8 +15,8 @@ trait Similarity {
 
 object LevenshteinDistance extends Similarity {
   def distance[T <: IndexedSeq[_]](a: T, b: T): Float = {
-    if (a.length == 0) b.length
-    else if (b.length == 0) a.length
+    if (a.isEmpty) b.length
+    else if (b.isEmpty) a.length
     else {
       val dist = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if (i == 0 || j == 0) i + j else 0f)
       for (i <- 1 to a.length; j <- 1 to b.length) {
@@ -38,7 +38,7 @@ object NumberSpanDistance extends Similarity {
       i <- m.group(1).toInt to m.group(2).toInt
     } yield i
     val nums = for {
-      m <- (numPattern findAllIn (spanPattern replaceAllIn(s, " ")))
+      m <- numPattern findAllIn (spanPattern replaceAllIn(s, " "))
     } yield m.toInt
     (numSpan ++ nums).toIndexedSeq
   }
@@ -48,5 +48,5 @@ object NumberSpanDistance extends Similarity {
 
 object WordBagDistance extends Similarity {
   override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
-  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (a - b).pnorm
+  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b - a).pnorm
 }
