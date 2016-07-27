@@ -4,8 +4,6 @@ import breeze.linalg.{Counter, min}
 import uk.ac.cdrc.data.utility.text.entity.WordBag
 import WordBag._
 
-import scala.util.matching.Regex
-
 /**
   * Created  on 7/25/16.
   */
