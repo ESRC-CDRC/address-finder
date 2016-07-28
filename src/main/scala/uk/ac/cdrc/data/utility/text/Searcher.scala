@@ -63,10 +63,10 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
   val sepChar = "\\s+".r
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
-  val index: IndexedSeq[(WordBag, Set[Int])] = items.indices map { i =>
+  val index: IndexedSeq[(WordBag, Set[Long])] = items.indices map { i =>
     (WordBag(items(i)), extractNumberSpan(items(i)))}
 
-  def score(candidate: (WordBag, Set[Int]), query: (WordBag, Set[Int])): Float ={
+  def score(candidate: (WordBag, Set[Long]), query: (WordBag, Set[Long])): Float ={
     val ws = WordSetDistance.distance(candidate._1, query._1)
     val ns = NumbersOverlapDistance.distance(candidate._2, query._2)
     if (ns < 1f)
