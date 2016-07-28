@@ -26,7 +26,7 @@ object LevenshteinDistance extends Similarity {
   def distance(a: String, b: String): Float = distance(a.toVector, b.toVector)
 }
 
-object NumberSpanDistance extends Similarity {
+trait NumberSpanExtractor {
   val spanPattern = "(\\d+)\\s*-\\s*(\\d+)".r
   val numPattern = "\\d+".r
 
@@ -41,6 +41,9 @@ object NumberSpanDistance extends Similarity {
     (numSpan ++ nums).toSet
   }
 
+}
+
+object NumberSpanDistance extends Similarity with NumberSpanExtractor{
   override def distance(a: String, b: String): Float = {
     val numSetB = extractNumberSpan(b)
     val numSetA = extractNumberSpan(a)
@@ -50,6 +53,20 @@ object NumberSpanDistance extends Similarity {
       (numSetB -- numSetA).size
   }
 }
+
+object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
+
+  override def distance(a: String, b: String): Float = {
+    val numSetB = extractNumberSpan(b)
+    val numSetA = extractNumberSpan(a)
+    val union: Float = (numSetB | numSetA).size
+    if (union == 0)
+      0
+    else
+      1.0f - (numSetB & numSetA).size / union
+  }
+}
+
 
 object WordBagDistance extends Similarity {
   override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))

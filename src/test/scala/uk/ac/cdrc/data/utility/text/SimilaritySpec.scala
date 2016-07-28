@@ -36,7 +36,15 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     NumberSpanDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
     NumberSpanDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1)
     NumberSpanDistance.distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (-1)
+    NumberSpanDistance.distance("aaa bbb ccc ccc", "bbcc dd ff") should be (-1)
 
+  }
+
+  "NumbersOverlapDistance" should "work" in {
+    NumbersOverlapDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
+    NumbersOverlapDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (0.5f)
+    NumbersOverlapDistance.distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (1)
+    NumbersOverlapDistance.distance("aaa bbb ccc ccc", "bbcc dd ff") should be (0)
   }
 
   "WordBagDistance" should "work" in {
