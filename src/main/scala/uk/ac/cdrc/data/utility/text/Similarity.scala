@@ -45,7 +45,7 @@ object NumberSpanDistance extends Similarity {
     val numSetB = extractNumberSpan(b)
     val numSetA = extractNumberSpan(a)
     if (numSetB.isEmpty)
-      -1.0f
+      -1.0f  // If the query do not contain any numbers then use -1f to mark it
     else
       (numSetB -- numSetA).size
   }
