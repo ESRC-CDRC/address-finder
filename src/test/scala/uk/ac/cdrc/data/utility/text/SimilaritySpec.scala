@@ -25,16 +25,17 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
   }
 
   "extractNumberSpan" should "work" in {
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5 ccc") should be (List(1, 2, 3, 4, 5))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5,6,7 ccc") should be (List(1, 2, 3, 4, 5, 6, 7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 6,7 ccc") should be (List(6, 7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 7 ccc") should be (List(7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc ccc") should be (List())
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5 ccc") should be (Set(1, 2, 3, 4, 5))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5,6,7 ccc") should be (Set(1, 2, 3, 4, 5, 6, 7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 6,7 ccc") should be (Set(6, 7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 7 ccc") should be (Set(7))
+    NumberSpanDistance.extractNumberSpan("aaa bbb ccc ccc") should be (Set())
   }
 
   "NumberSpanDistance" should "work" in {
     NumberSpanDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
     NumberSpanDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1)
+    NumberSpanDistance.distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (-1)
 
   }
 
@@ -55,10 +56,20 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
 
   "CommonPrefixDistance" should "work" in {
     CommonPrefixDistance.distance("a b c", "a b c") should be (0)
-    CommonPrefixDistance.distance("a b c d", "a b c") should be < 0.28571429f
-    CommonPrefixDistance.distance("a b c d", "a b c c d") should be < 0.4f
-    CommonPrefixDistance.distance("a b c d e", "a b c c d") should be (0.5)
-    CommonPrefixDistance.distance("a b c d", "a b c c d e") should be (0.5)
-    CommonPrefixDistance.distance("a b c d", "a b d e") should be < 0.7f
+    CommonPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
+    CommonPrefixDistance.distance("a b c d", "a b c c d") should be < 0.2f
+    CommonPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
+    CommonPrefixDistance.distance("a b c d", "a b c c d e") should be < 0.2f
+    CommonPrefixDistance.distance("a b c d", "a b d e") should be < 0.5f
+  }
+
+
+  "WordCommonPrefixDistance" should "work" in {
+    WordCommonPrefixDistance.distance("a b c", "a b c") should be (0)
+    WordCommonPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
+    WordCommonPrefixDistance.distance("a b c d", "a b c c d") should be (0.25f)
+    WordCommonPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
+    WordCommonPrefixDistance.distance("a b c d", "a b c c d e") should be (0.25f)
+    WordCommonPrefixDistance.distance("a b c d", "a b d e") should be (0.5f)
   }
 }

@@ -30,7 +30,7 @@ object NumberSpanDistance extends Similarity {
   val spanPattern = "(\\d+)\\s*-\\s*(\\d+)".r
   val numPattern = "\\d+".r
 
-  def extractNumberSpan(s: String): IndexedSeq[Int] = {
+  def extractNumberSpan(s: String): Set[Int] = {
     val numSpan = for {
       m <- (spanPattern findAllIn s).matchData
       i <- m.group(1).toInt to m.group(2).toInt
@@ -38,10 +38,17 @@ object NumberSpanDistance extends Similarity {
     val nums = for {
       m <- numPattern findAllIn (spanPattern replaceAllIn(s, " "))
     } yield m.toInt
-    (numSpan ++ nums).toIndexedSeq
+    (numSpan ++ nums).toSet
   }
 
-  override def distance(a: String, b: String): Float = LevenshteinDistance.distance(extractNumberSpan(a), extractNumberSpan(b))
+  override def distance(a: String, b: String): Float = {
+    val numSetB = extractNumberSpan(b)
+    val numSetA = extractNumberSpan(a)
+    if (numSetB.isEmpty)
+      -1.0f
+    else
+      (numSetB -- numSetA).size
+  }
 }
 
 object WordBagDistance extends Similarity {
@@ -60,6 +67,11 @@ object CommonPrefixDistance extends Similarity {
 
   def distance[T](a: Seq[T], b: Seq[T]): Float = {
     val commonPrefixLength = (a zip b).takeWhile(v => v._1 == v._2).length
-    1 - commonPrefixLength / (a.length + b.length - commonPrefixLength:Float)
+    1 - commonPrefixLength / (min(a.length, b.length): Float)
   }
+}
+
+object WordCommonPrefixDistance extends Similarity {
+  val whiteSpace = "\\s+".r
+  override def distance(a: String, b: String): Float = CommonPrefixDistance.distance(whiteSpace split a.trim, whiteSpace split b.trim)
 }
