@@ -12,19 +12,31 @@ class SearcherSpec extends FlatSpec with Matchers{
 
   "An default empty wordbag search" should "return nothing" in {
     val emptyPool = WordBagSearcher()
-    val r = (emptyPool search "a b c")
+    val r = emptyPool search "a b c"
+    r should matchPattern {case None => }
+  }
+
+  "An default empty AddressSearcher search" should "return nothing" in {
+    val emptyPool = AddressSearcher()
+    val r = emptyPool search "a b c"
     r should matchPattern {case None => }
   }
 
   "An empty wordbag search" should "return nothing" in {
     val emptyPool = WordBagSearcher(Seq[String]())
-    val r = (emptyPool search "a b c")
+    val r = emptyPool search "a b c"
+    r should matchPattern {case None => }
+  }
+
+  "An empty AddressSearcher search" should "return nothing" in {
+    val emptyPool = AddressSearcher(Seq[String]())
+    val r = emptyPool search "a b c"
     r should matchPattern {case None => }
   }
 
   "A wordbag searcher" should "find multi top matches" in {
     val s = WordBagSearcher(Array("a b c d", "a b c", "c d"))
-    val r = (s search "a b c")
+    val r = s search "a b c"
     inside(r) {
       case Some(rs) =>
         rs shouldBe 'multiTops
@@ -43,4 +55,15 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.hits should have size 1
     }
   }
+
+  "A AddressSearcher" should "not throw exception" in {
+    val s = AddressSearcher(Array("ggg  196  aaa  ccc ccc main  rrr  eee"))
+    val r = s search "ggg 200 aaa  ccc  main  rrr"
+    inside(r) {
+      case Some(rs) =>
+        rs.hits should have size 1
+        rs.hits(0)._2 should be (100)
+    }
+  }
+
 }

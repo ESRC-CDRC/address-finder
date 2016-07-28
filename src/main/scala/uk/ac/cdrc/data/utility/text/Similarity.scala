@@ -47,10 +47,14 @@ object NumberSpanDistance extends Similarity with NumberSpanExtractor{
   override def distance(a: String, b: String): Float = {
     val numSetB = extractNumberSpan(b)
     val numSetA = extractNumberSpan(a)
-    if (numSetB.isEmpty)
-      -1.0f  // If the query do not contain any numbers then use -1f to mark it
+    distance(numSetA, numSetB)
+  }
+
+  def distance(a: Set[Int], b: Set[Int]): Float = {
+    if (b.isEmpty)
+      -1.0f // If the query do not contain any numbers then use -1f to mark it
     else
-      (numSetB -- numSetA).size
+      (b -- a).size
   }
 }
 
@@ -59,11 +63,14 @@ object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
   override def distance(a: String, b: String): Float = {
     val numSetB = extractNumberSpan(b)
     val numSetA = extractNumberSpan(a)
-    val union: Float = (numSetB | numSetA).size
+    distance(numSetA, numSetB)
+  }
+  def distance(a: Set[Int], b: Set[Int]): Float = {
+    val union: Float = (b | a).size
     if (union == 0)
       0
     else
-      1.0f - (numSetB & numSetA).size / union
+      1.0f - (b & a).size / union
   }
 }
 

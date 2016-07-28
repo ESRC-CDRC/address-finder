@@ -13,12 +13,13 @@ case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String
   def rankScore: IndexedSeq[(String, Float)] = hits map {v => (items(v._1), v._2)}
 }
 
-trait Searcher {
-  val sepChar = "\\s+".r
-  def search(q: String): Option[SearchResult]
+trait Searcher{
+  def search(query: String): Option[SearchResult]
 }
 
+
 case class IndexedSearcher(pool: Seq[String]) extends Searcher{
+  val sepChar = "\\s+".r
 
   val items = pool.toArray
   val pairs = for (
@@ -33,7 +34,6 @@ case class IndexedSearcher(pool: Seq[String]) extends Searcher{
   override def search(query: String): Option[SearchResult] = None
 
 }
-
 
 class WordBagSearcher(pool: Seq[String]) extends Searcher {
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
@@ -57,4 +57,34 @@ case object EmptySearcher extends Searcher {
 object WordBagSearcher {
   def apply() = EmptySearcher
   def apply(pool: Seq[String]) = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
+}
+
+class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtractor {
+  val sepChar = "\\s+".r
+  val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
+
+  val index: IndexedSeq[(WordBag, Set[Int])] = items.indices map { i =>
+    (WordBag(items(i)), extractNumberSpan(items(i)))}
+
+  def score(candidate: (WordBag, Set[Int]), query: (WordBag, Set[Int])): Float ={
+    val ws = WordSetDistance.distance(candidate._1, query._1)
+    val ns = NumbersOverlapDistance.distance(candidate._2, query._2)
+    if (ns < 1f)
+      ws
+    else
+      100f
+  }
+
+  override def search(q: String): Option[SearchResult] = {
+    val qwb = WordBag(q)
+    val numSpan = extractNumberSpan(q)
+    val scores = index.indices map (i => (i, score(index(i), (qwb, numSpan))))
+
+    Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
+  }
+}
+
+object AddressSearcher {
+  def apply() = EmptySearcher
+  def apply(pool: Seq[String]) = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
 }
