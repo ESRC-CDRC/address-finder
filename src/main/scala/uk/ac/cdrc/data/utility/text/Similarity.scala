@@ -96,6 +96,6 @@ object CommonPrefixDistance extends Similarity {
 }
 
 object WordCommonPrefixDistance extends Similarity {
-  val whiteSpace = "\\s+".r
+  val whiteSpace = "\\s+|-+".r
   override def distance(a: String, b: String): Float = CommonPrefixDistance.distance(whiteSpace split a.trim, whiteSpace split b.trim)
 }
