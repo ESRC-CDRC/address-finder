@@ -19,12 +19,11 @@ trait Searcher{
 
 
 case class IndexedSearcher(pool: Seq[String]) extends Searcher{
-  val sepChar = "\\s+".r
-
+  val tokenizer = SimpleTokenizer
   val items = pool.toArray
   val pairs = for (
     i <- 0 to items.length;
-    w <- sepChar split items(i)
+    w <- tokenizer tokenize items(i)
   ) yield (w, i)
 
 //  val indexible = pairs groupBy {_._1} map (d => (d._1, SparseVector(d._2, DenseVector.ones(d._2.length), items.length)))
@@ -60,13 +59,12 @@ object WordBagSearcher {
 }
 
 class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtractor {
-  val sepChar = "\\s+|-+".r
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
-  val index: IndexedSeq[(WordBag, Set[Long])] = items.indices map { i =>
-    (WordBag(items(i)), extractNumberSpan(items(i)))}
+  val index: IndexedSeq[(WordBag, IndexedSeq[String])] = items.indices map { i =>
+    (WordBag(items(i)), extract(items(i)))}
 
-  def score(candidate: (WordBag, Set[Long]), query: (WordBag, Set[Long])): Float ={
+  def score(candidate: (WordBag, IndexedSeq[String]), query: (WordBag, IndexedSeq[String])): Float ={
     val ws = WordSetDistance.distance(candidate._1, query._1)
     val ns = NumbersOverlapDistance.distance(candidate._2, query._2)
     if (ns < 1f)
@@ -77,7 +75,7 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
 
   override def search(q: String): Option[SearchResult] = {
     val qwb = WordBag(q)
-    val numSpan = extractNumberSpan(q)
+    val numSpan = extract(q)
     val scores = index.indices map (i => (i, score(index(i), (qwb, numSpan))))
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))

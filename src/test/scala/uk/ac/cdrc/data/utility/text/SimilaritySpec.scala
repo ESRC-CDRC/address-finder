@@ -25,11 +25,11 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
   }
 
   "extractNumberSpan" should "work" in {
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5 ccc") should be (Set(1, 2, 3, 4, 5))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 1-5,6,7 ccc") should be (Set(1, 2, 3, 4, 5, 6, 7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 6,7 ccc") should be (Set(6, 7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc 7 ccc") should be (Set(7))
-    NumberSpanDistance.extractNumberSpan("aaa bbb ccc ccc") should be (Set())
+    NumberSpanDistance.extract("aaa bbb ccc 1-5 ccc") should be (Array("1", "2", "3", "4", "5"))
+    NumberSpanDistance.extract("aaa bbb ccc 1-5,6,7 ccc") should be (Array("1", "2", "3", "4", "5", "6", "7"))
+    NumberSpanDistance.extract("aaa bbb ccc 6,7 ccc") should be (Array("6", "7"))
+    NumberSpanDistance.extract("aaa bbb ccc 7 ccc") should be (Array("7"))
+    NumberSpanDistance.extract("aaa bbb ccc ccc") should be (Array())
   }
 
   "NumberSpanDistance" should "work" in {
