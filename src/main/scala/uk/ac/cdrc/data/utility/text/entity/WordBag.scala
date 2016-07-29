@@ -13,7 +13,7 @@ case class WordBag(data: Counter[String, Int]) {
 }
 
 object WordBag {
-  val whiteSpace = "\\s+".r
+  val whiteSpace = "\\s+|-+".r
 
   def apply(s: String) = string2WordBag(s)
 

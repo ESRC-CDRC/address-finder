@@ -60,7 +60,7 @@ object WordBagSearcher {
 }
 
 class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtractor {
-  val sepChar = "\\s+".r
+  val sepChar = "\\s+|-+".r
   val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
   val index: IndexedSeq[(WordBag, Set[Long])] = items.indices map { i =>

@@ -35,7 +35,7 @@ class SearcherSpec extends FlatSpec with Matchers{
   }
 
   "A wordbag searcher" should "find multi top matches" in {
-    val s = WordBagSearcher(Array("a b c d", "a b c", "c d"))
+    val s = WordBagSearcher(Array("a-b c d", "a b c", "c d"))
     val r = s search "a b c"
     inside(r) {
       case Some(rs) =>
