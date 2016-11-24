@@ -45,14 +45,14 @@ class JDBCWriter(val jdbcUrl: String, connProps: Map[String, String]){
     }
   }
 
-  def write(frame: DataFrame):Unit = {
+  def write(frame: DataFrame, table: String):Unit = {
     // Beware: this will open a db connection for every partition of your DataFrame.
     frame.foreachPartition { rows =>
       val conn = cf()
       val cm = new CopyManager(conn.asInstanceOf[BaseConnection])
 
       cm.copyIn(
-        """COPY my_schema._mytable FROM STDIN WITH (NULL 'null', FORMAT CSV, DELIMITER E'\t')""", // adjust COPY settings as you desire, options from https://www.postgresql.org/docs/9.5/static/sql-copy.html
+        s"""COPY $table FROM STDIN WITH (NULL 'null', FORMAT CSV, DELIMITER E'\t')""", // adjust COPY settings as you desire, options from https://www.postgresql.org/docs/9.5/static/sql-copy.html
         rowsToInputStream(rows, "\t"))
 
       conn.close()
