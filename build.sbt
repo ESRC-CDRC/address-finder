@@ -1,5 +1,5 @@
 lazy val address_finder = (project in file(".")).
-  aggregate(spark_jdbc_utils).
+  aggregate(spark_jdbc_util).
   settings(inThisBuild(List(
     organization := "uk.ac.cdrc.data",
     version := "0.1-SNAPSHOT",
@@ -17,9 +17,9 @@ lazy val address_finder = (project in file(".")).
   )
 
 
-lazy val spark_jdbc_utils = (project in file("spark-jdbc-util")).
+lazy val spark_jdbc_util = (project in file("spark-jdbc-util")).
   settings(
-    name := "spark-jdbc-utils",
+    name := "spark-jdbc-util",
     libraryDependencies  ++= Seq(
       "org.apache.spark" %% "spark-sql" % "2.0.0",
       "org.postgresql" % "postgresql" % "9.4.1212",
