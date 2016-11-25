@@ -7,7 +7,9 @@ import java.io.InputStream
 import java.sql.Connection
 import java.util.Properties
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.IntType
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcUtils
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
@@ -31,6 +33,22 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     }
   }
 
+  val getSQLType: Map[String, String] = Map(
+    "StringType" -> "text",
+    "DateType" -> "date",
+    "TimestampType" -> "timestamp",
+    "FloatType" -> "real",
+    "DoubleType" -> "real",
+    "IntegerType" -> "int"
+  )
+
+  def schemaToTable(frame: DataFrame, table: String): String = {
+    val colDef = for {
+      (name, typ, nullable, _) <- frame.schema.fields()
+    } yield s"$name ${getSQLType(typ)}" mkString ", "
+    s"CREATE TABLE $table (${colDef});"
+  }
+
   def write(frame: DataFrame, table: String):Unit = {
     val connectionProperties: Properties = {
       val props = new java.util.Properties()
@@ -46,6 +64,9 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     // it picks the Redshift driver, which doesn't support JDBC CopyManager.
     // https://github.com/apache/spark/blob/v1.6.1/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/jdbc/JdbcUtils.scala#L44-51
     val cf: () => Connection = JdbcUtils.createConnectionFactory(jdbcUrl, connectionProperties)
+
+    val stmt = cf().createStatement()
+    stmt.executeUpdate(schemaToTable(frame, table))
 
     // Beware: this will open a db connection for every partition of your DataFrame.
     frame.foreachPartition { rows =>
