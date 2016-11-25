@@ -104,4 +104,6 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
       conn.close()
     }
   }
+
+  override def toString = s"JDBCWriter($jdbcUrl, ...)"
 }
