@@ -12,22 +12,8 @@ import org.apache.spark.sql.{DataFrame, Row}
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
 
-class JDBCWriter(val jdbcUrl: String, connProps: Map[String, String]){
+case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
   //jdbcUrl = s"jdbc:postgresql://..." // db credentials elided
-  val connectionProperties: Properties = {
-    val props = new java.util.Properties()
-
-    for { (k, v) <- connProps}
-      props.setProperty("driver", "org.postgresql.Driver")
-
-    props
-  }
-
-  // Spark reads the "driver" property to allow users to override the default driver selected, otherwise
-  // it picks the Redshift driver, which doesn't support JDBC CopyManager.
-  // https://github.com/apache/spark/blob/v1.6.1/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/jdbc/JdbcUtils.scala#L44-51
-  val cf: () => Connection = JdbcUtils.createConnectionFactory(jdbcUrl, connectionProperties)
-
   // Convert every partition (an `Iterator[Row]`) to bytes (InputStream)
   def rowsToInputStream(rows: Iterator[Row], delimiter: String): InputStream = {
 
@@ -46,6 +32,20 @@ class JDBCWriter(val jdbcUrl: String, connProps: Map[String, String]){
   }
 
   def write(frame: DataFrame, table: String):Unit = {
+    val connectionProperties: Properties = {
+      val props = new java.util.Properties()
+
+      for { (k, v) <- connProps}
+        props.setProperty("driver", "org.postgresql.Driver")
+
+      props
+    }
+
+    // Spark reads the "driver" property to allow users to override the default driver selected, otherwise
+    // it picks the Redshift driver, which doesn't support JDBC CopyManager.
+    // https://github.com/apache/spark/blob/v1.6.1/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/jdbc/JdbcUtils.scala#L44-51
+    val cf: () => Connection = JdbcUtils.createConnectionFactory(jdbcUrl, connectionProperties)
+
     // Beware: this will open a db connection for every partition of your DataFrame.
     frame.foreachPartition { rows =>
       val conn = cf()
