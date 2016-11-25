@@ -35,8 +35,9 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     val connectionProperties: Properties = {
       val props = new java.util.Properties()
 
+      props.setProperty("driver", "org.postgresql.Driver")
       for { (k, v) <- connProps}
-        props.setProperty("driver", "org.postgresql.Driver")
+        props.setProperty(k, v)
 
       props
     }
