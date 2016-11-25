@@ -7,9 +7,7 @@ import java.io.InputStream
 import java.sql.Connection
 import java.util.Properties
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.IntType
 import org.apache.spark.sql.execution.datasources.jdbc.JdbcUtils
-import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row}
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
@@ -54,7 +52,8 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     "TimestampType" -> "timestamp",
     "FloatType" -> "real",
     "DoubleType" -> "real",
-    "IntegerType" -> "int"
+    "IntegerType" -> "int",
+    "LongType" -> "int"
   )
 
   def schemaToTable(frame: DataFrame, table: String): String = {
