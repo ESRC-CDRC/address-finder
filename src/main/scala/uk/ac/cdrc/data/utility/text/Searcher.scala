@@ -76,7 +76,10 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
   override def search(q: String): Option[SearchResult] = {
     val qwb = WordBag(q)
     val numSpan = extract(q)
-    val scores = index.indices map (i => (i, score(index(i), (qwb, numSpan))))
+    val scores = for {
+      i <- index.indices
+      s = score(index(i), (qwb, numSpan))
+    } yield (i, s)
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
   }
