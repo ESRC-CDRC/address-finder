@@ -56,7 +56,7 @@ object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
     if (union == 0)
       0
     else
-      1.0f - (bSet & aSet).size / union
+      1.0f - (bSet & aSet).size / (union: Float)
   }
 }
 
