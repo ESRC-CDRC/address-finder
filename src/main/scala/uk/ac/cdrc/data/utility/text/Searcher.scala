@@ -79,6 +79,7 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
     val scores = for {
       i <- index.indices
       s = score(index(i), (qwb, numSpan))
+      if s < 100.0f // remove scores larger than 100 as they have a total mismatching in number dimension
     } yield (i, s)
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))

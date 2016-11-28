@@ -54,9 +54,9 @@ object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
     val bSet = b.toSet
     val union: Float = (bSet | aSet).size
     if (union == 0)
-      0
+      0.0f
     else
-      1.0f - (bSet & aSet).size / (union: Float)
+      1.0f - (bSet & aSet).size / union
   }
 }
 
