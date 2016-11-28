@@ -85,6 +85,20 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     conn.close()
   }
 
+  def addIdColumn(table: String, idColName: String): Unit =  {
+    val conn = cf()
+    val stmt = conn.createStatement()
+    stmt.executeUpdate(s"ALTER TABLE $table add column $idColName serial primary key")
+    conn.close()
+  }
+
+  def addIndices(table: String, cols: Seq[String] = Seq.empty): Unit = {
+    val conn = cf()
+    val createIndicesStmt = (for (col <- cols) yield s"CREATE INDEX ${table}_${col}_ix on ${table}(${col})") mkString "; "
+    conn.createStatement().executeUpdate(createIndicesStmt)
+    conn.close()
+  }
+
   def write(frame: DataFrame, table: String, overwrite: Boolean = false, appendIdCol: Option[String] = Some("id")): Unit = {
 
     if (overwrite)
@@ -100,13 +114,13 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
         s"""COPY $table FROM STDIN WITH (NULL 'null', FORMAT CSV, DELIMITER E'\t')""", // adjust COPY settings as you desire, options from https://www.postgresql.org/docs/9.5/static/sql-copy.html
         rowsToInputStream(rows, "\t"))
 
-      appendIdCol match {
-        case Some(idColName) =>
-          val stmt = conn.createStatement()
-          stmt.executeUpdate(s"ALTER TABLE $table add column $idColName serial primary key")
-        case _ => ()
-      }
       conn.close()
+    }
+    addIndices(table, frame.columns)
+    // Append an id column if required (e.g., when one needs spark's partitioning by IDs
+    appendIdCol match {
+      case Some(idColName) => addIdColumn(table, idColName)
+      case _ => ()
     }
   }
 
