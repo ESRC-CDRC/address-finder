@@ -104,6 +104,7 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
         case Some(idColName) =>
           val stmt = conn.createStatement()
           stmt.executeUpdate(s"ALTER TABLE $table add column $idColName serial primary key")
+        case _ => ()
       }
       conn.close()
     }
