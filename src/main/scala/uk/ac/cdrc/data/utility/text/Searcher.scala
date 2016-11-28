@@ -19,12 +19,12 @@ trait Searcher{
 
 
 case class IndexedSearcher(pool: Seq[String]) extends Searcher{
-  val tokenizer = SimpleTokenizer
-  val items = pool.toArray
-  val pairs = for (
-    i <- 0 to items.length;
-    w <- tokenizer tokenize items(i)
-  ) yield (w, i)
+//  val tokenizer = SimpleTokenizer
+//  private val items = pool.toArray
+//  private val pairs = for (
+//    i <- 0 to items.length;
+//    w <- tokenizer tokenize items(i)
+//  ) yield (w, i)
 
 //  val indexible = pairs groupBy {_._1} map (d => (d._1, SparseVector(d._2, DenseVector.ones(d._2.length), items.length)))
 
@@ -35,7 +35,7 @@ case class IndexedSearcher(pool: Seq[String]) extends Searcher{
 }
 
 class WordBagSearcher(pool: Seq[String]) extends Searcher {
-  val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
+  private val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
   val wordBags: IndexedSeq[WordBag] = items.indices map { i => WordBag(items(i))}
 
@@ -55,11 +55,11 @@ case object EmptySearcher extends Searcher {
 
 object WordBagSearcher {
   def apply() = EmptySearcher
-  def apply(pool: Seq[String]) = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
+  def apply(pool: Seq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
 }
 
 class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtractor {
-  val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
+  private val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
 
   val index: IndexedSeq[(WordBag, IndexedSeq[String])] = items.indices map { i =>
     (WordBag(items(i)), extract(items(i)))}
@@ -88,5 +88,5 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
 
 object AddressSearcher {
   def apply() = EmptySearcher
-  def apply(pool: Seq[String]) = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
+  def apply(pool: Seq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
 }
