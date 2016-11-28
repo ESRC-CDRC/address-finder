@@ -85,7 +85,7 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     conn.close()
   }
 
-  def write(frame: DataFrame, table: String, overwrite: Boolean = false): Unit = {
+  def write(frame: DataFrame, table: String, overwrite: Boolean = false, appendIdCol: Option[String] = Some("id")): Unit = {
 
     if (overwrite)
       dropTable(table)
@@ -100,6 +100,11 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
         s"""COPY $table FROM STDIN WITH (NULL 'null', FORMAT CSV, DELIMITER E'\t')""", // adjust COPY settings as you desire, options from https://www.postgresql.org/docs/9.5/static/sql-copy.html
         rowsToInputStream(rows, "\t"))
 
+      appendIdCol match {
+        case Some(idColName) =>
+          val stmt = conn.createStatement()
+          stmt.executeUpdate(s"ALTER TABLE $table add column $idColName serial primary key")
+      }
       conn.close()
     }
   }
