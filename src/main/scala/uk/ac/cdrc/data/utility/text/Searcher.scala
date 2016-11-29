@@ -5,12 +5,12 @@ package uk.ac.cdrc.data.utility.text
 
 import uk.ac.cdrc.data.utility.text.entity._
 
-
 case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) {
-  def top: String = {println(hits.length); items(hits(0)._1)}
+  def top: String = items(hits(0)._1)
   def multiTops: Boolean = if (hits.lengthCompare(2) < 0) false else hits(0)._2 == hits(1)._2
   def rank: IndexedSeq[String] = hits map {v => items(v._1)}
   def rankScore: IndexedSeq[(String, Float)] = hits map {v => (items(v._1), v._2)}
+  def getMatching: Option[String] = if (!multiTops && hits(0)._2 < 100.0f) Some(top) else None
 }
 
 trait Searcher{
@@ -79,7 +79,6 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
     val scores = for {
       i <- index.indices
       s = score(index(i), (qwb, numSpan))
-      if s < 100.0f // remove scores larger than 100 as they have a total mismatching in number dimension
     } yield (i, s)
 
     Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))

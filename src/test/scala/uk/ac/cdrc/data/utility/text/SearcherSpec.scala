@@ -56,13 +56,27 @@ class SearcherSpec extends FlatSpec with Matchers{
     }
   }
 
-  "An AddressSearcher" should "not throw exception" in {
+  "An AddressSearcher" should "deal with single candidate" in {
     val s = AddressSearcher(Array("ggg  196  aaa  ccc ccc main  rrr  eee"))
     val r = s search "ggg 20000000000 aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
         rs.hits should have size 1
         rs.hits(0)._2 should be (100)
+    }
+  }
+
+  "An AddressSearcher" should "deal with two candidates" in {
+    val s = AddressSearcher(Array(
+      "ggg  196  aaa  ccc ccc main  rrr  eee",
+      "ggg  197  aaa  ccc ccc main  rrr  eee"
+    ))
+    val r = s search "ggg 20000000000 aaa  ccc  main  rrr"
+    inside(r) {
+      case Some(rs) =>
+        rs.hits should have size 2
+        rs.hits(0)._2 should be (100)
+        rs.getMatching should be (None)
     }
   }
 
