@@ -5,7 +5,6 @@ lazy val address_finder = (project in file(".")).
     version := "0.1-SNAPSHOT",
     scalaVersion := "2.11.8",
     crossScalaVersions := Seq("2.10.8"))),
-    packagedArtifacts := Map.empty,
     name := "address-finder",
     libraryDependencies  ++= Seq(
       "org.scalanlp" %% "breeze" % "0.11.2",
