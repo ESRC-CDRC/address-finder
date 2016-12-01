@@ -81,7 +81,10 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
       s = score(index(i), (qwb, numSpan))
     } yield (i, s)
 
-    Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
+    if (scores.isEmpty)
+      None
+    else
+      Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
   }
 }
 
