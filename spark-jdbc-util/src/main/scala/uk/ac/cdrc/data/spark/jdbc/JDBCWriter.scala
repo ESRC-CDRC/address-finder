@@ -99,7 +99,7 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
     conn.close()
   }
 
-  def write(frame: DataFrame, table: String, overwrite: Boolean = false, appendIdCol: Option[String] = Some("id")): Unit = {
+  def write(frame: DataFrame, table: String, overwrite: Boolean = false, index: Boolean = true, appendIdCol: Option[String] = Some("id")): Unit = {
 
     if (overwrite)
       dropTable(table)
@@ -116,7 +116,8 @@ case class JDBCWriter(jdbcUrl: String, connProps: Map[String, String]){
 
       conn.close()
     }
-    addIndices(table, frame.columns)
+    if (index)
+      addIndices(table, frame.columns)
     // Append an id column if required (e.g., when one needs spark's partitioning by IDs
     appendIdCol match {
       case Some(idColName) => addIdColumn(table, idColName)
