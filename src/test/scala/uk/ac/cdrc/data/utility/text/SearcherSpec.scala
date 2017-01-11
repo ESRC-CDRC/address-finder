@@ -77,6 +77,7 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.hits should have size 2
         rs.hits(0)._2 should be (100)
         rs.getMatching should be (None)
+        rs shouldBe 'multiTops
     }
   }
 
