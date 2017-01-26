@@ -2,7 +2,7 @@ lazy val address_finder = (project in file(".")).
   aggregate(spark_jdbc_util).
   settings(inThisBuild(List(
     organization := "uk.ac.cdrc.data",
-    version := "0.1-SNAPSHOT",
+    version := "0.2-SNAPSHOT",
     scalaVersion := "2.11.8",
     crossScalaVersions := Seq("2.10.8"))),
     name := "address-finder",
