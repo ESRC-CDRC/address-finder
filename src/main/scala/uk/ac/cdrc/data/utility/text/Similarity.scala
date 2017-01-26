@@ -71,17 +71,38 @@ object WordSetDistance extends Similarity {
   def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size
 }
 
+object PriorityWordDistance extends Similarity {
+  def posWeight[T](seq: Seq[T], w: T): Float = {
+    val p = seq.indexOf(w)
+    if (p >= 0) (seq.length - p) / seq.length
+    else 0.0f
+  }
+  override def distance(a: String, b: String): Float = {
+    val aWords = WordBag.tokenizer.tokenize(a)
+    val bWords = WordBag.tokenizer.tokenize(b)
+    (for {
+      w <- aWords.toSet -- bWords.toSet
+    } yield posWeight(aWords, w) + posWeight(bWords, w)).sum
+  }
+}
 
-object CommonPrefixDistance extends Similarity {
-  override def distance(a: String, b: String): Float = distance(a.toSeq, b.toSeq)
+object SymmetricWordSetDistance extends Similarity {
+  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
+  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size + (a.keySet -- b.keySet).size
+}
 
+trait CommonPrefixDistance {
   def distance[T](a: Seq[T], b: Seq[T]): Float = {
     val commonPrefixLength = (a zip b).takeWhile(v => v._1 == v._2).length
     1 - commonPrefixLength / (min(a.length, b.length): Float)
   }
 }
 
-object WordCommonPrefixDistance extends Similarity {
-  val tokenizer = SimpleTokenizer
-  override def distance(a: String, b: String): Float = CommonPrefixDistance.distance(tokenizer tokenize  a.trim, tokenizer tokenize  b.trim)
+object LetterPrefixDistance extends Similarity with CommonPrefixDistance{
+  override def distance(a: String, b: String): Float = distance(a.toSeq, b.toSeq)
+}
+
+object WordPrefixDistance extends Similarity with CommonPrefixDistance{
+  val tokenizer = DigitWordTokenizer
+  override def distance(a: String, b: String): Float = distance(tokenizer tokenize  a.trim, tokenizer tokenize  b.trim)
 }

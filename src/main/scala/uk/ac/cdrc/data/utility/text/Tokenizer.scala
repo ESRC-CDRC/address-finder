@@ -7,7 +7,7 @@ trait Tokenizer {
   def tokenize(s: String): IndexedSeq[String]
 }
 
-object SimpleTokenizer extends Tokenizer {
+object DigitWordTokenizer extends Tokenizer {
   val separator = "\\s+|-+".r
   val digitsPattern = "\\d+".r
   override def tokenize(s: String): IndexedSeq[String] = {

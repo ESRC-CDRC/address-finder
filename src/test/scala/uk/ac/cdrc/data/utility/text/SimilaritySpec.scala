@@ -62,22 +62,22 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     WordSetDistance.distance("a b c d", "a b d e") should be (1)
   }
 
-  "CommonPrefixDistance" should "work" in {
-    CommonPrefixDistance.distance("a b c", "a b c") should be (0)
-    CommonPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
-    CommonPrefixDistance.distance("a b c d", "a b c c d") should be < 0.2f
-    CommonPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
-    CommonPrefixDistance.distance("a b c d", "a b c c d e") should be < 0.2f
-    CommonPrefixDistance.distance("a b c d", "a b d e") should be < 0.5f
+  "LetterPrefixDistance" should "work" in {
+    LetterPrefixDistance.distance("a b c", "a b c") should be (0)
+    LetterPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
+    LetterPrefixDistance.distance("a b c d", "a b c c d") should be < 0.2f
+    LetterPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
+    LetterPrefixDistance.distance("a b c d", "a b c c d e") should be < 0.2f
+    LetterPrefixDistance.distance("a b c d", "a b d e") should be < 0.5f
   }
 
 
-  "WordCommonPrefixDistance" should "work" in {
-    WordCommonPrefixDistance.distance("a b c", "a b c") should be (0)
-    WordCommonPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
-    WordCommonPrefixDistance.distance("a b c d", "a b c c d") should be (0.25f)
-    WordCommonPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
-    WordCommonPrefixDistance.distance("a b c d", "a b c c d e") should be (0.25f)
-    WordCommonPrefixDistance.distance("a b c d", "a b d e") should be (0.5f)
+  "WordPrefixDistance" should "work" in {
+    WordPrefixDistance.distance("a b c", "a b c") should be (0)
+    WordPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
+    WordPrefixDistance.distance("a b c d", "a b c c d") should be (0.25f)
+    WordPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
+    WordPrefixDistance.distance("a b c d", "a b c c d e") should be (0.25f)
+    WordPrefixDistance.distance("a b c d", "a b d e") should be (0.5f)
   }
 }

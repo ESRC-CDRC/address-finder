@@ -2,7 +2,7 @@ package uk.ac.cdrc.data.utility.text.entity
 
 import breeze.linalg.{Counter, sum}
 import breeze.linalg.Counter.canMapValues
-import uk.ac.cdrc.data.utility.text.SimpleTokenizer
+import uk.ac.cdrc.data.utility.text.DigitWordTokenizer
 
 case class WordBag(data: Counter[String, Int]) {
 
@@ -14,9 +14,9 @@ case class WordBag(data: Counter[String, Int]) {
 }
 
 object WordBag {
-  val tokenizer = SimpleTokenizer
+  val tokenizer = DigitWordTokenizer
 
-  def apply(s: String) = string2WordBag(s)
+  def apply(s: String): WordBag = string2WordBag(s)
 
   implicit def string2WordBag(s: String): WordBag = {
     WordBag(Counter.countTraversable(tokenizer tokenize s))
@@ -27,6 +27,4 @@ object WordBag {
   }
 
   implicit def wordBag2Counter(wb: WordBag): Counter[String, Int] = wb.data
-
-  def toWordBag(w: WordBag): WordBag = w
 }
