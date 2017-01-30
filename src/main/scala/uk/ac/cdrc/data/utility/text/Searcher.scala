@@ -5,12 +5,7 @@ package uk.ac.cdrc.data.utility.text
 
 import uk.ac.cdrc.data.utility.text.entity._
 
-trait SearchResult {
-  def isEmpty: Boolean
-}
-
-case class SomeSearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) extends SearchResult {
-  override def isEmpty = false
+case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) {
   def top: String = items(hits(0)._1)
   def multiTops: Boolean = if (hits.lengthCompare(2) < 0) false else hits(0)._2 == hits(1)._2
   def rank: IndexedSeq[String] = hits map {v => items(v._1)}
@@ -18,12 +13,9 @@ case class SomeSearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[St
   def getMatching: Option[String] = if (!multiTops && hits(0)._2 < 100.0f) Some(top) else None
 }
 
-object EmptySearchResult extends SearchResult{
-  override def isEmpty = true
-}
 
 trait Searcher{
-  def search(query: String): SearchResult
+  def search(query: String): Option[SearchResult]
 }
 
 
@@ -39,7 +31,7 @@ case class IndexedSearcher(pool: Seq[String]) extends Searcher{
 
 
   //TODO Make a faster search with the index
-  override def search(query: String): SearchResult = EmptySearchResult
+  override def search(query: String): Option[SearchResult] = None
 
 }
 
@@ -50,16 +42,16 @@ class WordBagSearcher(pool: Seq[String]) extends Searcher {
 
   def score(wb: WordBag, query: WordBag): Float = WordBagDistance.distance(wb, query)
 
-  override def search(q: String): SearchResult = {
+  override def search(q: String): Option[SearchResult] = {
     val qwb = WordBag(q)
     val scores = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
 
-    SomeSearchResult(scores sortBy (v => (v._2, items(v._1).length)), items)
+    Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
   }
 }
 
 case object EmptySearcher extends Searcher {
-  override def search(q: String): SearchResult = EmptySearchResult
+  override def search(q: String): Option[SearchResult] = None
 }
 
 object WordBagSearcher {
@@ -82,7 +74,7 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
       100f
   }
 
-  override def search(q: String): SearchResult = {
+  override def search(q: String): Option[SearchResult] = {
     val fq = filter(q)
     val qwb = WordBag(q)
     val numSpan = extract(q)
@@ -92,9 +84,9 @@ class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtract
     } yield (i, s)
 
     if (scores.isEmpty)
-      EmptySearchResult
+      None
     else
-      SomeSearchResult(scores sortBy (v => (v._2, items(v._1).length)), items)
+      Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
   }
 }
 

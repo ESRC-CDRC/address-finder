@@ -13,36 +13,36 @@ class SearcherSpec extends FlatSpec with Matchers{
   "An default empty wordbag search" should "return nothing" in {
     val emptyPool = WordBagSearcher()
     val r = emptyPool search "a b c"
-    r should matchPattern {case EmptySearchResult => }
+    r should be (None)
   }
 
   "An default empty AddressSearcher search" should "return nothing" in {
     val emptyPool = AddressSearcher()
     val r = emptyPool search "a b c"
-    r should matchPattern {case EmptySearchResult => }
+    r should be (None)
   }
 
   "An empty wordbag search" should "return nothing" in {
     val emptyPool = WordBagSearcher(IndexedSeq[String]())
     val r = emptyPool search "a b c"
-    r should matchPattern {case EmptySearchResult => }
+    r should be (None)
   }
 
   "An empty AddressSearcher search" should "return nothing" in {
     val emptyPool = AddressSearcher(IndexedSeq[String]())
     val r = emptyPool search "a b c"
-    r should matchPattern {case EmptySearchResult => }
+    r should be (None)
   }
 
   "A wordbag searcher" should "find multi top matches" in {
     val s = WordBagSearcher(IndexedSeq("a-b c d", "a b c", "c d"))
     val r = s search "a b c"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs shouldBe 'multiTops
     }
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 3
     }
   }
@@ -51,7 +51,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     val s = WordBagSearcher(IndexedSeq("ggg  196  aaa  ccc ccc main  rrr  eee"))
     val r = s search "ggg 200 aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 1
     }
   }
@@ -60,7 +60,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     val s = AddressSearcher(IndexedSeq("ggg  196  aaa  ccc ccc main  rrr  eee"))
     val r = s search "ggg 20000000000 aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 1
         rs.hits(0)._2 should be (100)
     }
@@ -73,7 +73,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     ))
     val r = s search "ggg 20000000000 aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 2
         rs.hits(0)._2 should be (100)
         rs.getMatching should be (None)
@@ -89,7 +89,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     ))
     val r = s search "ggg 196 aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 3
         rs should not be 'multiTops
     }
@@ -104,7 +104,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     ))
     val r = s search "ggg 196 aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 4
         rs should not be 'multiTops
     }
@@ -118,7 +118,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     ))
     val r = s search "Flat 4 5 ggg aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 3
         rs should not be 'multiTops
     }
@@ -133,7 +133,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     val s = AddressSearcher(addrs)
     val r = s search "5a ggg aaa  ccc  main  rrr"
     inside(r) {
-      case rs: SomeSearchResult =>
+      case Some(rs) =>
         rs.hits should have size 3
         rs should not be 'multiTops
         rs.top should be (addrs.head)
