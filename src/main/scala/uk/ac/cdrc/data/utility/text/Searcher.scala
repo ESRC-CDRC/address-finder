@@ -5,92 +5,83 @@ package uk.ac.cdrc.data.utility.text
 
 import uk.ac.cdrc.data.utility.text.entity._
 
-case class SearchResult(hits: IndexedSeq[(Int, Float)], items: IndexedSeq[String]) {
-  def top: String = items(hits(0)._1)
-  def multiTops: Boolean = if (hits.lengthCompare(2) < 0) false else hits(0)._2 == hits(1)._2
-  def rank: IndexedSeq[String] = hits map {v => items(v._1)}
-  def rankScore: IndexedSeq[(String, Float)] = hits map {v => (items(v._1), v._2)}
-  def getMatching: Option[String] = if (!multiTops && hits(0)._2 < 100.0f) Some(top) else None
+case class SearchResult(hits: Seq[(Int, Float)])(implicit items: IndexedSeq[String]) {
+  val orderedHits: IndexedSeq[(Int, Float)] = hits.sortBy(_._2).toIndexedSeq
+  def top: String = items(orderedHits.head._1)
+  def multiTops: Boolean = if (orderedHits.lengthCompare(2) < 0) false else orderedHits(0)._2 == orderedHits(1)._2
+  def rank: IndexedSeq[String] = orderedHits map {v => items(v._1)}
+  def rankScore: IndexedSeq[(String, Float)] = orderedHits map {v => (items(v._1), v._2)}
+  def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < 100.0f) Some(top) else None
 }
 
 
-trait Searcher{
-  def search(query: String): Option[SearchResult]
+trait Searcher {
+  val pool: IndexedSeq[String]
+  def search(q: String): Option[SearchResult]
 }
 
-
-case class IndexedSearcher(pool: Seq[String]) extends Searcher{
-//  val tokenizer = SimpleTokenizer
-//  private val items = pool.toArray
-//  private val pairs = for (
-//    i <- 0 to items.length;
-//    w <- tokenizer tokenize items(i)
-//  ) yield (w, i)
-
-//  val indexible = pairs groupBy {_._1} map (d => (d._1, SparseVector(d._2, DenseVector.ones(d._2.length), items.length)))
-
-
-  //TODO Make a faster search with the index
-  override def search(query: String): Option[SearchResult] = None
-
-}
-
-class WordBagSearcher(pool: Seq[String]) extends Searcher {
-  private val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
-
-  val wordBags: IndexedSeq[WordBag] = items.indices map { i => WordBag(items(i))}
-
-  def score(wb: WordBag, query: WordBag): Float = WordBagDistance.distance(wb, query)
-
+trait PooledSearcher[U] extends Searcher {
+  self: Analyzer[String, U] with AnalyzedPool[String, U] with Similarity[U] =>
   override def search(q: String): Option[SearchResult] = {
-    val qwb = WordBag(q)
-    val scores = wordBags.indices map (i => (i, score(wordBags(i), qwb)))
+    val qwb = process(q)
+    val scores = for {
+      i <- processed.indices
+      u = processed(i)
+    } yield (i, distance(u, qwb))
 
-    Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
+    Some(SearchResult(scores)(pool))
   }
 }
 
 case object EmptySearcher extends Searcher {
   override def search(q: String): Option[SearchResult] = None
+
+  override implicit val pool: IndexedSeq[String] = IndexedSeq.empty
 }
+
+class WordBagSearcher(override val pool: IndexedSeq[String]) extends WordBagAnalyzedPool(pool)
+  with WordBagAnalyzer
+  with PooledSearcher[WordBag]
+  with WordBagDistance
+
 
 object WordBagSearcher {
   def apply() = EmptySearcher
-  def apply(pool: Seq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
+  def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
 }
 
-class AddressSearcher(pool: Seq[String]) extends Searcher with NumberSpanExtractor with WordStopper{
-  private val items = (pool map (_.trim) filter (!_.isEmpty)).toArray
-
-  val index: IndexedSeq[(WordBag, IndexedSeq[String], String)] = items.indices map { i =>
-    (WordBag(items(i)), extract(items(i)), filter(items(i)))}
-
-  def score(candidate: (WordBag, IndexedSeq[String], String), query: (WordBag, IndexedSeq[String], String)): Float ={
-    val ws = SymmetricWordSetDistance.distance(candidate._1, query._1)
-    val ns = NumbersOverlapDistance.distance(candidate._2, query._2)
-    if (ns < 1f)
-      ws * 10 + WordPrefixDistance.distance(candidate._3, query._3)
-    else
-      100f
-  }
+class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Float])
+                       (override implicit val pool: IndexedSeq[String]) extends Searcher {
 
   override def search(q: String): Option[SearchResult] = {
-    val fq = filter(q)
-    val qwb = WordBag(q)
-    val numSpan = extract(q)
-    val scores = for {
-      i <- index.indices
-      s = score(index(i), (qwb, numSpan, fq))
-    } yield (i, s)
-
-    if (scores.isEmpty)
+    val scoreParts = for {
+      (searcher, weight) <- searchers zip weights
+      res: SearchResult <- searcher.search(q).toSet
+      (i, score) <- res.hits
+    } yield (i, score * weight)
+    if(scoreParts.isEmpty)
       None
     else
-      Some(SearchResult(scores sortBy (v => (v._2, items(v._1).length)), items))
+      Some(SearchResult(scoreParts.groupBy(_._1).mapValues{(x: Seq[(Int, Float)]) => x.map(_._2).sum}.toSeq))
   }
+}
+
+class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
+
+  val searchers: Seq[Searcher] = Seq(
+    new NumberSpanAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
+    new WordBagAnalyzedPool(pool) with PooledSearcher[WordBag] with SymmetricWordSetDistance,
+    new WordSeqAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with WordPrefixDistance
+  )
+
+  val weights: Seq[Float] = Seq(100, 10, 1)
+
+  val comboSearcher = new CompositeSearcher(searchers, weights)(pool)
+
+  override def search(q: String): Option[SearchResult] = comboSearcher.search(q)
 }
 
 object AddressSearcher {
   def apply() = EmptySearcher
-  def apply(pool: Seq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
+  def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
 }

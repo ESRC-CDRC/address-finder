@@ -2,7 +2,7 @@ package uk.ac.cdrc.data.utility.text.entity
 
 import breeze.linalg.{Counter, sum}
 import breeze.linalg.Counter.canMapValues
-import uk.ac.cdrc.data.utility.text.DigitWordTokenizer
+import uk.ac.cdrc.data.utility.text.{Analyzer, DigitWordTokenizer}
 
 case class WordBag(data: Counter[String, Int]) {
 

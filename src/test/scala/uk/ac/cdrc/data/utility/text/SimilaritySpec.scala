@@ -7,77 +7,81 @@ package uk.ac.cdrc.data.utility.text
 import org.scalatest._
 import org.scalatest.prop.Checkers
 import spire.std.{LevenshteinDistance => LD}
+import uk.ac.cdrc.data.utility.text.entity.WordBag
 
 class SimilaritySpec extends FlatSpec with Matchers with Checkers {
-  "Empties" should "work fine" in {
-    LevenshteinDistance.distance("", "") should be (0)
-    LevenshteinDistance.distance("a", "") should be (1)
-    LevenshteinDistance.distance("", "b") should be (1)
+  "Empties" should "work fine" in new LevenshteinDistance {
+    distance("", "") should be (0)
+    distance("a", "") should be (1)
+    distance("", "b") should be (1)
   }
 
-  "Our Levenshtein distance" should "compare with spire.std.LevenshteinDistance" in {
-    check((a: String, b: String) => LevenshteinDistance.distance(a, b) == LD.distance(a, b))
+  "Our Levenshtein distance" should "compare with spire.std.LevenshteinDistance" in new LevenshteinDistance {
+    check((a: String, b: String) => distance(a, b) == LD.distance(a, b))
   }
-  "Substrings" should "have a distance from the missing parts" in {
-    check((a: String, b: String) => LevenshteinDistance.distance(a + b, b) == a.length)
-    check((a: String, b: String) => LevenshteinDistance.distance(b + a, b) == a.length)
-    check((a: String, b: String, c: String) => LevenshteinDistance.distance(a + b + c, b) == a.length + c.length)
-  }
-
-  "extractNumberSpan" should "work" in {
-    NumberSpanDistance.extract("aaa bbb ccc 1-5 ccc") should be (Array("1", "2", "3", "4", "5"))
-    NumberSpanDistance.extract("aaa bbb ccc 1-5,6,7 ccc") should be (Array("1", "2", "3", "4", "5", "6", "7"))
-    NumberSpanDistance.extract("aaa bbb ccc 6,7 ccc") should be (Array("6", "7"))
-    NumberSpanDistance.extract("aaa bbb ccc 7 ccc") should be (Array("7"))
-    NumberSpanDistance.extract("aaa bbb ccc ccc") should be (Array())
+  "Substrings" should "have a distance from the missing parts" in new LevenshteinDistance {
+    check((a: String, b: String) => distance(a + b, b) == a.length)
+    check((a: String, b: String) => distance(b + a, b) == a.length)
+    check((a: String, b: String, c: String) => distance(a + b + c, b) == a.length + c.length)
   }
 
-  "NumberSpanDistance" should "work" in {
-    NumberSpanDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
-    NumberSpanDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1)
-    NumberSpanDistance.distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (-1)
-    NumberSpanDistance.distance("aaa bbb ccc ccc", "bbcc dd ff") should be (-1)
+  "extractNumberSpan" should "work" in new NumberSpanAnalyzer{
+    process("aaa bbb ccc 1-5 ccc") should be (Array("1", "2", "3", "4", "5"))
+    process("aaa bbb ccc 1-5,6,7 ccc") should be (Array("1", "2", "3", "4", "5", "6", "7"))
+    process("aaa bbb ccc 6,7 ccc") should be (Array("6", "7"))
+    process("aaa bbb ccc 7 ccc") should be (Array("7"))
+    process("aaa bbb ccc ccc") should be (Array())
+  }
+
+  "NumberSpanDistance" should "work" in new NumberSpanAnalyzer with NumberSpanDistance {
+    implicit def toProcessed(s: String): IndexedSeq[String] = process(s)
+    distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
+    distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1)
+    distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (-1)
+    distance("aaa bbb ccc ccc", "bbcc dd ff") should be (-1)
 
   }
 
-  "NumbersOverlapDistance" should "work" in {
-    NumbersOverlapDistance.distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
-    NumbersOverlapDistance.distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (0.5f)
-    NumbersOverlapDistance.distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (1)
-    NumbersOverlapDistance.distance("aaa bbb ccc ccc", "bbcc dd ff") should be (0)
+  "NumbersOverlapDistance" should "work" in new NumberSpanAnalyzer with NumberOverlapDistance {
+    implicit def toProcessed(s: String): IndexedSeq[String] = process(s)
+    distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0)
+    distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (0.5f)
+    distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (1)
+    distance("aaa bbb ccc ccc", "bbcc dd ff") should be (0)
   }
 
-  "WordBagDistance" should "work" in {
-    WordBagDistance.distance("a b c", "a b c") should be (0)
-    WordBagDistance.distance("a b c d", "a b c") should be (0)
-    WordBagDistance.distance("a b c d", "a b c c d") should be (1)
+  "WordBagDistance" should "work" in new WordBagAnalyzer with WordBagDistance {
+    distance("a b c", "a b c") should be (0)
+    distance("a b c d", "a b c") should be (0)
+    distance("a b c d", "a b c c d") should be (1)
   }
 
-  "WordSetDistance" should "work" in {
-    WordSetDistance.distance("a b c", "a b c") should be (0)
-    WordSetDistance.distance("a b c d", "a b c") should be (0)
-    WordSetDistance.distance("a b c d", "a b c c d") should be (0)
-    WordSetDistance.distance("a b c d e", "a b c c d") should be (0)
-    WordSetDistance.distance("a b c d", "a b c c d e") should be (1)
-    WordSetDistance.distance("a b c d", "a b d e") should be (1)
+  "WordSetDistance" should "work" in new WordBagAnalyzer with WordSetDistance {
+    distance("a b c", "a b c") should be (0)
+    distance("a b c d", "a b c") should be (0)
+    distance("a b c d", "a b c c d") should be (0)
+    distance("a b c d e", "a b c c d") should be (0)
+    distance("a b c d", "a b c c d e") should be (1)
+    distance("a b c d", "a b d e") should be (1)
   }
 
-  "LetterPrefixDistance" should "work" in {
-    LetterPrefixDistance.distance("a b c", "a b c") should be (0)
-    LetterPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
-    LetterPrefixDistance.distance("a b c d", "a b c c d") should be < 0.2f
-    LetterPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
-    LetterPrefixDistance.distance("a b c d", "a b c c d e") should be < 0.2f
-    LetterPrefixDistance.distance("a b c d", "a b d e") should be < 0.5f
+  "LetterPrefixDistance" should "work" in new LevenshteinDistance {
+    distance("a b c", "a b c") should be (0)
+    distance("a b c d", "a b c") should be (0.0f)
+    distance("a b c d", "a b c c d") should be < 0.2f
+    distance("a b c d e", "a b c c d") should be < 0.4f
+    distance("a b c d", "a b c c d e") should be < 0.2f
+    distance("a b c d", "a b d e") should be < 0.5f
   }
 
 
-  "WordPrefixDistance" should "work" in {
-    WordPrefixDistance.distance("a b c", "a b c") should be (0)
-    WordPrefixDistance.distance("a b c d", "a b c") should be (0.0f)
-    WordPrefixDistance.distance("a b c d", "a b c c d") should be (0.25f)
-    WordPrefixDistance.distance("a b c d e", "a b c c d") should be < 0.4f
-    WordPrefixDistance.distance("a b c d", "a b c c d e") should be (0.25f)
-    WordPrefixDistance.distance("a b c d", "a b d e") should be (0.5f)
+  "WordPrefixDistance" should "work" in new WordSeqAnalyzer with WordPrefixDistance {
+    implicit def toProcessed(s: String): IndexedSeq[String] = process(s)
+    distance("a b c", "a b c") should be (0)
+    distance("a b c d", "a b c") should be (0.0f)
+    distance("a b c d", "a b c c d") should be (0.25f)
+    distance("a b c d e", "a b c c d") should be < 0.4f
+    distance("a b c d", "a b c c d e") should be (0.25f)
+    distance("a b c d", "a b d e") should be (0.5f)
   }
 }

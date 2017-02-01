@@ -1,17 +1,18 @@
 package uk.ac.cdrc.data.utility.text
 
-import breeze.linalg.{Counter, min}
+import breeze.linalg.min
+import uk.ac.cdrc.data.utility.text
 import uk.ac.cdrc.data.utility.text.entity.WordBag
-import WordBag._
+import uk.ac.cdrc.data.utility.text.entity.WordBag._
 
 /**
   * Created  on 7/25/16.
   */
-trait Similarity {
-  def distance(a: String, b: String): Float
+trait Similarity[T] {
+  def distance(a: T, b: T): Float
 }
 
-object LevenshteinDistance extends Similarity {
+trait LevenshteinDistance extends Similarity[String] {
   def distance[T <: IndexedSeq[_]](a: T, b: T): Float = {
     if (a.isEmpty) b.length
     else if (b.isEmpty) a.length
@@ -27,12 +28,7 @@ object LevenshteinDistance extends Similarity {
 }
 
 
-object NumberSpanDistance extends Similarity with NumberSpanExtractor{
-  override def distance(a: String, b: String): Float = {
-    val numSetB = extract(b)
-    val numSetA = extract(a)
-    distance(numSetA, numSetB)
-  }
+trait NumberSpanDistance extends Similarity[IndexedSeq[String]] {
 
   def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Float = {
     if (b.isEmpty)
@@ -42,13 +38,8 @@ object NumberSpanDistance extends Similarity with NumberSpanExtractor{
   }
 }
 
-object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
+trait NumberOverlapDistance extends Similarity[IndexedSeq[String]]{
 
-  override def distance(a: String, b: String): Float = {
-    val numSetB = extract(b)
-    val numSetA = extract(a)
-    distance(numSetA, numSetB)
-  }
   def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Float = {
     val aSet = a.toSet
     val bSet = b.toSet
@@ -60,35 +51,33 @@ object NumbersOverlapDistance extends Similarity with NumberSpanExtractor {
   }
 }
 
-
-object WordBagDistance extends Similarity {
-  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
-  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b - a).pnorm
+trait StrictNumberOverlapDistance extends NumberOverlapDistance {
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Float = if (super.distance(a, b) < 1) 0 else 100
 }
 
-object WordSetDistance extends Similarity {
-  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
-  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size
+trait WordBagDistance extends Similarity[WordBag] {
+  def distance(a: WordBag, b: WordBag): Float = (wordBag2Counter(b) - wordBag2Counter(a)).pnorm
 }
 
-object PriorityWordDistance extends Similarity {
+trait WordSetDistance extends Similarity[WordBag] {
+  def distance(a: WordBag, b: WordBag): Float = (b.keySet -- a.keySet).size
+}
+
+trait PriorityWordDistance extends Similarity[IndexedSeq[String]] {
   def posWeight[T](seq: Seq[T], w: T): Float = {
     val p = seq.indexOf(w)
     if (p >= 0) (seq.length - p) / seq.length
     else 0.0f
   }
-  override def distance(a: String, b: String): Float = {
-    val aWords = WordBag.tokenizer.tokenize(a)
-    val bWords = WordBag.tokenizer.tokenize(b)
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Float = {
     (for {
-      w <- aWords.toSet -- bWords.toSet
-    } yield posWeight(aWords, w) + posWeight(bWords, w)).sum
+      w <- a.toSet -- b.toSet
+    } yield posWeight(a, w) + posWeight(b, w)).sum
   }
 }
 
-object SymmetricWordSetDistance extends Similarity {
-  override def distance(a: String, b: String): Float = distance(WordBag(a), WordBag(b))
-  def distance(a: Counter[String, Int], b: Counter[String, Int]): Float = (b.keySet -- a.keySet).size + (a.keySet -- b.keySet).size
+trait SymmetricWordSetDistance extends Similarity[WordBag] {
+  def distance(a: WordBag, b: WordBag): Float = (b.keySet -- a.keySet).size + (a.keySet -- b.keySet).size
 }
 
 trait CommonPrefixDistance {
@@ -98,11 +87,10 @@ trait CommonPrefixDistance {
   }
 }
 
-object LetterPrefixDistance extends Similarity with CommonPrefixDistance{
+trait LetterPrefixDistance extends Similarity[String] with CommonPrefixDistance{
   override def distance(a: String, b: String): Float = distance(a.toSeq, b.toSeq)
 }
 
-object WordPrefixDistance extends Similarity with CommonPrefixDistance{
-  val tokenizer = DigitWordTokenizer
-  override def distance(a: String, b: String): Float = distance(tokenizer tokenize  a.trim, tokenizer tokenize  b.trim)
+trait WordPrefixDistance extends Similarity[IndexedSeq[String]] with CommonPrefixDistance{
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Float = distance[String](a, b)
 }
