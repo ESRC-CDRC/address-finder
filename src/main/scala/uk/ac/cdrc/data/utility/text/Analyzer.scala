@@ -50,7 +50,6 @@ class WordSeqAnalyzedPool(override val pool: IndexedSeq[String]) extends WordSeq
 /**
   * Number span analyzer and pooled storage
   */
-
 trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
   val numSpanPattern: Regex = "(\\d+)\\s*-\\s*(\\d+)".r

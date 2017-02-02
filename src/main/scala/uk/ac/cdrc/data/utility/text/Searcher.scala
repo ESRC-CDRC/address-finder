@@ -1,27 +1,71 @@
-package uk.ac.cdrc.data.utility.text
 /**
-  * Created  on 7/19/16.
+  * The searchers are the core of the package.
   */
+package uk.ac.cdrc.data.utility.text
 
 import uk.ac.cdrc.data.utility.text.entity._
 
+/**
+  * The search results are the returns from the searchers
+  * It defines several utility functions such as mutltiTops which indicate
+  * whether a single most close item can be found. If not it usually means
+  * there are missing information in either of the query or the collection.
+  * @param hits the scored items in (index, score) pairs, smaller scores mean closer matches
+  * @param items the items in the collection the score of which are recorded in the hits
+  */
 case class SearchResult(hits: Seq[(Int, Double)])(implicit items: IndexedSeq[String]) {
   val orderedHits: IndexedSeq[(Int, Double)] = hits.sortBy(_._2).toIndexedSeq
+
+  /**
+    * Get the top match
+    * @return the item got matched
+    */
   def top: String = items(orderedHits.head._1)
+
+  /**
+    * Whether their are more than one items having the smallest score in the collection
+    * @return true if no single closest matches
+    */
   def multiTops: Boolean = if (orderedHits.lengthCompare(2) < 0) false else orderedHits(0)._2 == orderedHits(1)._2
+
+  /**
+    * Get the items ranked by their scores
+    * @return the items list in the order of their scores from closest to the farthest
+    */
   def rank: IndexedSeq[String] = orderedHits map {v => items(v._1)}
+
+  /**
+    * Get the items and the score in ranking order
+    * @return the list of (item, score) pairs
+    */
   def rankScore: IndexedSeq[(String, Double)] = orderedHits map {v => (items(v._1), v._2)}
+
+  /**
+    * Get the only match if there is one
+    * @return the only single match
+    */
   def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < 100.0f) Some(top) else None
 }
 
 
 trait Searcher {
   val pool: IndexedSeq[String]
+
+  /**
+    * Search the stored collection for the given query
+    * @param q a simple string query
+    * @return a possible findings in the collection
+    */
   def search(q: String): Option[SearchResult]
 }
 
-trait PooledSearcher[U] extends Searcher {
+/**
+  * A searcher with preporcessed information before querying enabled by AnalyzedPool
+  * @tparam U the type of preprocessed items
+  */
+trait PreproccessingSearcher[U] extends Searcher {
   self: Analyzer[String, U] with AnalyzedPool[String, U] with Similarity[U] =>
+
   override def search(q: String): Option[SearchResult] = {
     val qwb = process(q)
     val scores = for {
@@ -33,15 +77,22 @@ trait PooledSearcher[U] extends Searcher {
   }
 }
 
+/**
+  * A searcher with nothing in the collection
+  */
 case object EmptySearcher extends Searcher {
   override def search(q: String): Option[SearchResult] = None
 
   override implicit val pool: IndexedSeq[String] = IndexedSeq.empty
 }
 
+/**
+  * A word bag based searcher
+  * @param pool a pool of strings
+  */
 class WordBagSearcher(override val pool: IndexedSeq[String]) extends WordBagAnalyzedPool(pool)
   with WordBagAnalyzer
-  with PooledSearcher[WordBag]
+  with PreproccessingSearcher[WordBag]
   with WordBagDistance
 
 
@@ -50,9 +101,20 @@ object WordBagSearcher {
   def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
 }
 
+/**
+  * A searcher that combines results from a set of searchers
+  * @param searchers a list of searchers with the same collection
+  * @param weights a list of numbers deciding the weights for each searcher
+  * @param pool the collection
+  */
 class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
                        (override implicit val pool: IndexedSeq[String]) extends Searcher {
 
+  /**
+    * The score is a linear combination of the scores from all the sub searchers via the given weights
+    * @param q a simple string query
+    * @return a possible findings in the collection
+    */
   override def search(q: String): Option[SearchResult] = {
     val scoreParts = for {
       (searcher, weight) <- searchers zip weights
@@ -66,12 +128,16 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
   }
 }
 
+/**
+  * A predefined address searcher that should be used
+  * @param pool a set of addresses in string
+  */
 class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
-    new NumberSpanAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
-    new WordBagAnalyzedPoolWithIDF(pool) with PooledSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
-    new WordSeqAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with WordPrefixDistance
+    new NumberSpanAnalyzedPool(pool) with PreproccessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
+    new WordBagAnalyzedPoolWithIDF(pool) with PreproccessingSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
+    new WordSeqAnalyzedPool(pool) with PreproccessingSearcher[IndexedSeq[String]] with WordPrefixDistance
   )
 
   val weights: Seq[Double] = Seq(100, 10, 1)
