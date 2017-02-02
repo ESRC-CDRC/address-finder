@@ -188,4 +188,77 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs should be ('multiTops)
     }
   }
+
+  it should "deal with crossing number span candidates 2" in {
+    val addrs = IndexedSeq(
+      "8a www bbb lll iii of uuu",
+      "6d www bbb lll iii of uuu",
+      "3 www bbb lll iii of uuu",
+      "10a www bbb lll iii of uuu",
+      "11a www bbb lll iii of uuu",
+      "12a www bbb lll iii of uuu",
+      "g/l 13 www bbb lll iii of uuu",
+      "14a www bbb lll iii of uuu",
+      "g/l 15 www bbb lll iii of uuu",
+      "16a www bbb lll iii of uuu",
+      "17a www bbb lll iii of uuu",
+      "18a www bbb lll iii of uuu",
+      "19a www bbb lll iii of uuu",
+      "4a www bbb lll iii of uuu",
+      "5a www bbb lll iii of uuu",
+      "6a www bbb lll iii of uuu",
+      "7a www bbb lll iii of uuu",
+      "9a www bbb lll iii of uuu",
+      "1b www bbb lll iii of uuu",
+      "1c www bbb lll iii of uuu",
+      "1d www bbb lll iii of uuu",
+      "1e www bbb lll iii of uuu",
+      "mmm ooo www bbb lll iii of uuu",
+      "lll ttt ltd 1 www bbb lll iii of uuu",
+      "g/r 13 www bbb lll iii of uuu",
+      "1/l 13 www bbb lll iii of uuu",
+      "1/r 13 www bbb lll iii of uuu",
+      "g/r 15 www bbb lll iii of uuu",
+      "1/l 15 www bbb lll iii of uuu",
+      "1/r 15 www bbb lll iii of uuu",
+      "4b www bbb lll iii of uuu",
+      "4c www bbb lll iii of uuu",
+      "4d www bbb lll iii of uuu",
+      "4e www bbb lll iii of uuu",
+      "4f www bbb lll iii of uuu",
+      "5b www bbb lll iii of uuu",
+      "5c www bbb lll iii of uuu",
+      "5d www bbb lll iii of uuu",
+      "5e www bbb lll iii of uuu",
+      "5f www bbb lll iii of uuu",
+      "6b www bbb lll iii of uuu",
+      "6c www bbb lll iii of uuu",
+      "6e www bbb lll iii of uuu",
+      "6f www bbb lll iii of uuu",
+      "9b www bbb lll iii of uuu",
+      "17b www bbb lll iii of uuu",
+      "18b www bbb lll iii of uuu",
+      "10b www bbb lll iii of uuu",
+      "11b www bbb lll iii of uuu",
+      "12b www bbb lll iii of uuu",
+      "14b www bbb lll iii of uuu",
+      "16b www bbb lll iii of uuu",
+      "19b www bbb lll iii of uuu",
+      "7b www bbb lll iii of uuu",
+      "8b www bbb lll iii of uuu",
+      "0/2 13 www bbb lll iii of uuu",
+      "0/2 15 www bbb lll iii of uuu",
+      "1/1 13 www bbb lll iii of uuu",
+      "1/1 15 www bbb lll iii of uuu",
+      "1/2 13 www bbb lll iii of uuu",
+      "1/2 15 www bbb lll iii of uuu"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "8a www bbb lll  iii of uuu iii of uuu"
+    inside(r) {
+      case Some(rs) =>
+        rs should not be 'multiTops
+        rs.top should be (addrs.head)
+    }
+  }
 }
