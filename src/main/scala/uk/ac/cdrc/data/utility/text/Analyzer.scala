@@ -1,6 +1,8 @@
 package uk.ac.cdrc.data.utility.text
 
+import breeze.linalg.Counter
 import uk.ac.cdrc.data.utility.text.entity.WordBag
+
 import scala.util.matching.Regex
 
 /**
@@ -25,6 +27,13 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag] {
 }
 
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]
+
+class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]{
+  val idf: Counter[String, Double] = Counter.count((for {
+    wb <- processed
+    word <- wb.keySet
+  } yield word): _*).mapValues(x => 1 + math.log10(processed.length.toFloat / (x + 1)))
+}
 
 /**
   * Word sequence based analyzer and pooled storage

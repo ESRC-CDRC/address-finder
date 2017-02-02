@@ -5,8 +5,8 @@ package uk.ac.cdrc.data.utility.text
   */
 
 
+import org.scalatest.Inside._
 import org.scalatest._
-import Inside._
 
 class SearcherSpec extends FlatSpec with Matchers{
 
@@ -62,7 +62,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     inside(r) {
       case Some(rs) =>
         rs.hits should have size 1
-        rs.hits(0)._2 should be (100)
+        rs.hits.head._2 should be > 100d
     }
   }
 
@@ -75,7 +75,7 @@ class SearcherSpec extends FlatSpec with Matchers{
     inside(r) {
       case Some(rs) =>
         rs.hits should have size 2
-        rs.hits(0)._2 should be (100)
+        rs.hits.head._2 should be > 100d
         rs.getMatching should be (None)
         rs shouldBe 'multiTops
     }
@@ -96,31 +96,33 @@ class SearcherSpec extends FlatSpec with Matchers{
   }
 
   it should "deal with difficult suffixed candidates" in {
-    val s = AddressSearcher(IndexedSeq(
+    val addrs = IndexedSeq(
       "ggg  196a  aaa  ccc ccc main  rrr  eee",
       "ggg  196  aaa  ccc ccc main  rrr  eee",
       "ggg  197  aaa  ccc ccc main  rrr  eee",
       "ggg  197a  aaa  ccc ccc main  rrr  eee"
-    ))
+    )
+    val s = AddressSearcher(addrs)
     val r = s search "ggg 196 aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
-        rs.hits should have size 4
         rs should not be 'multiTops
+        rs.top should be (addrs(1))
     }
   }
 
   it should "deal with hard suffixed candidates" in {
-    val s = AddressSearcher(IndexedSeq(
+    val addrs = IndexedSeq(
       "flat 4 5 ggg  aaa  ccc ccc main  rrr  eee",
       "flat 5 4 ggg  aaa  ccc ccc main  rrr  eee",
       "flat 6 7 ggg  aaa  ccc ccc main  rrr  eee"
-    ))
+    )
+    val s = AddressSearcher(addrs)
     val r = s search "Flat 4 5 ggg aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
-        rs.hits should have size 3
         rs should not be 'multiTops
+        rs.top should be (addrs.head)
     }
   }
 
@@ -128,16 +130,62 @@ class SearcherSpec extends FlatSpec with Matchers{
     val addrs = IndexedSeq(
       "flat a 5 ggg  aaa  ccc ccc main  rrr  eee",
       "flat a 4 ggg  aaa  ccc ccc main  rrr  eee",
+      "flat b 4 ggg  aaa  ccc ccc main  rrr  eee",
       "5 ggg  aaa  ccc ccc main  rrr  eee"
     )
     val s = AddressSearcher(addrs)
     val r = s search "5a ggg aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
-        rs.hits should have size 3
         rs should not be 'multiTops
         rs.top should be (addrs.head)
     }
   }
 
+  it should "deal with number span candidates" in {
+    val addrs = IndexedSeq(
+      "3-5 ggg  aaa  ccc ccc main  rrr  eee",
+      "6 ggg  aaa  ccc ccc main  rrr  eee",
+      "7 ggg  aaa  ccc ccc main  rrr  eee",
+      "8 ggg  aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "5 ggg aaa  ccc  main  rrr"
+    inside(r) {
+      case Some(rs) =>
+        rs should not be 'multiTops
+        rs.top should be (addrs.head)
+    }
+  }
+
+  it should "deal with another number span candidates" in {
+    val addrs = IndexedSeq(
+      "3-6 ggg  aaa  ccc ccc main  rrr  eee",
+      "9-10 ggg  aaa  ccc ccc main  rrr  eee",
+      "10-13 ggg  aaa  ccc ccc main  rrr  eee",
+      "14 ggg  aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "5-6 ggg aaa  ccc  main  rrr"
+    inside(r) {
+      case Some(rs) =>
+        rs should not be 'multiTops
+        rs.top should be (addrs.head)
+    }
+  }
+
+  it should "deal with crossing number span candidates" in {
+    val addrs = IndexedSeq(
+      "3-6 ggg  aaa  ccc ccc main  rrr  eee",
+      "7-8 ggg  aaa  ccc ccc main  rrr  eee",
+      "10-13 ggg  aaa  ccc ccc main  rrr  eee",
+      "14 ggg  aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "6-7 ggg aaa  ccc  main  rrr"
+    inside(r) {
+      case Some(rs) =>
+        rs should be ('multiTops)
+    }
+  }
 }

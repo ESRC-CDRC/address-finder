@@ -5,12 +5,12 @@ package uk.ac.cdrc.data.utility.text
 
 import uk.ac.cdrc.data.utility.text.entity._
 
-case class SearchResult(hits: Seq[(Int, Float)])(implicit items: IndexedSeq[String]) {
-  val orderedHits: IndexedSeq[(Int, Float)] = hits.sortBy(_._2).toIndexedSeq
+case class SearchResult(hits: Seq[(Int, Double)])(implicit items: IndexedSeq[String]) {
+  val orderedHits: IndexedSeq[(Int, Double)] = hits.sortBy(_._2).toIndexedSeq
   def top: String = items(orderedHits.head._1)
   def multiTops: Boolean = if (orderedHits.lengthCompare(2) < 0) false else orderedHits(0)._2 == orderedHits(1)._2
   def rank: IndexedSeq[String] = orderedHits map {v => items(v._1)}
-  def rankScore: IndexedSeq[(String, Float)] = orderedHits map {v => (items(v._1), v._2)}
+  def rankScore: IndexedSeq[(String, Double)] = orderedHits map {v => (items(v._1), v._2)}
   def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < 100.0f) Some(top) else None
 }
 
@@ -50,7 +50,7 @@ object WordBagSearcher {
   def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
 }
 
-class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Float])
+class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
                        (override implicit val pool: IndexedSeq[String]) extends Searcher {
 
   override def search(q: String): Option[SearchResult] = {
@@ -62,7 +62,7 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Float])
     if(scoreParts.isEmpty)
       None
     else
-      Some(SearchResult(scoreParts.groupBy(_._1).mapValues{(x: Seq[(Int, Float)]) => x.map(_._2).sum}.toSeq))
+      Some(SearchResult(scoreParts.groupBy(_._1).mapValues{(x: Seq[(Int, Double)]) => x.map(_._2).sum}.toSeq))
   }
 }
 
@@ -70,11 +70,11 @@ class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
     new NumberSpanAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
-    new WordBagAnalyzedPool(pool) with PooledSearcher[WordBag] with SymmetricWordSetDistance,
+    new WordBagAnalyzedPoolWithIDF(pool) with PooledSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
     new WordSeqAnalyzedPool(pool) with PooledSearcher[IndexedSeq[String]] with WordPrefixDistance
   )
 
-  val weights: Seq[Float] = Seq(100, 10, 1)
+  val weights: Seq[Double] = Seq(100, 10, 1)
 
   val comboSearcher = new CompositeSearcher(searchers, weights)(pool)
 

@@ -65,23 +65,23 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     distance("a b c d", "a b d e") should be (1)
   }
 
-  "LetterPrefixDistance" should "work" in new LevenshteinDistance {
+  "LetterPrefixDistance" should "work" in new LetterPrefixDistance {
     distance("a b c", "a b c") should be (0)
-    distance("a b c d", "a b c") should be (0.0f)
-    distance("a b c d", "a b c c d") should be < 0.2f
-    distance("a b c d e", "a b c c d") should be < 0.4f
-    distance("a b c d", "a b c c d e") should be < 0.2f
-    distance("a b c d", "a b d e") should be < 0.5f
+    distance("a b c d", "a b c") should be (0.0d)
+    distance("a b c d", "a b c c d") should be < 0.2d
+    distance("a b c d e", "a b c c d") should be < 0.4d
+    distance("a b c d", "a b c c d e") should be < 0.2d
+    distance("a b c d", "a b d e") should be < 0.5d
   }
 
 
   "WordPrefixDistance" should "work" in new WordSeqAnalyzer with WordPrefixDistance {
     implicit def toProcessed(s: String): IndexedSeq[String] = process(s)
     distance("a b c", "a b c") should be (0)
-    distance("a b c d", "a b c") should be (0.0f)
-    distance("a b c d", "a b c c d") should be (0.25f)
-    distance("a b c d e", "a b c c d") should be < 0.4f
-    distance("a b c d", "a b c c d e") should be (0.25f)
-    distance("a b c d", "a b d e") should be (0.5f)
+    distance("a b c d", "a b c") should be (0.0d)
+    distance("a b c d", "a b c c d") should be (0.25d)
+    distance("a b c d e", "a b c c d") should be <= 0.4d
+    distance("a b c d", "a b c c d e") should be (0.25d)
+    distance("a b c d", "a b d e") should be (0.5d)
   }
 }
