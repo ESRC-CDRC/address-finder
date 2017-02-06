@@ -28,9 +28,13 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag] {
 
 object WordBagAnalyzer extends WordBagAnalyzer
 
-class WordBagAnalyzedPool(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]
+class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
+  extends WordBagAnalyzer
+    with AnalyzedPool[String, WordBag]
 
-class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]{
+class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
+  extends PunctuationRemoval[WordBag, WordBagAnalyzer](WordBagAnalyzer)
+    with AnalyzedPool[String, WordBag]{
   val idf: Counter[String, Double] = Counter.count((for {
     wb <- processed
     word <- wb.keySet
@@ -49,7 +53,9 @@ trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
 object WordSeqAnalyzer extends WordSeqAnalyzer
 
-class WordSeqAnalyzedPool(override val pool: IndexedSeq[String]) extends WordSeqAnalyzer with AnalyzedPool[String, IndexedSeq[String]]
+class WordSeqAnalyzedPool(override val pool: IndexedSeq[String])
+  extends WordSeqAnalyzer
+    with AnalyzedPool[String, IndexedSeq[String]]
 
 /**
   * Number span analyzer and pooled storage
@@ -73,7 +79,9 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
 object NumberSpanAnalyzer extends NumberSpanAnalyzer
 
-class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String]) extends NumberSpanAnalyzer with AnalyzedPool[String, IndexedSeq[String]]
+class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
+  extends NumberSpanAnalyzer
+    with AnalyzedPool[String, IndexedSeq[String]]
 
 
 trait NestedAnalyzer[U, A <: Analyzer[String, U]] extends Analyzer[String, U]{
@@ -86,5 +94,5 @@ trait NestedAnalyzer[U, A <: Analyzer[String, U]] extends Analyzer[String, U]{
 class PunctuationRemoval[U, A <: Analyzer[String, U]](override val inner: A) extends NestedAnalyzer[U, A] {
   val punctuationPattern: Regex = "[,.']+".r
 
-  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, " ")
+  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, "")
 }

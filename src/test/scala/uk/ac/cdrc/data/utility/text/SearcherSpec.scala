@@ -262,4 +262,48 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.top should be (addrs.head)
     }
   }
+
+  it should "deal with punctuations" in {
+    val addrs = IndexedSeq(
+      "gggs  aaa  ccc ccc main  rrr  eee",
+      "gggs fff aaa  ccc ccc main  rrr  eee",
+      "gggs hhh aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "ggg's aaa  ccc  main  rrr eee"
+    inside(r) {
+      case Some(rs) =>
+        rs should not be 'multiTops
+        rs.top should be (addrs(0))
+    }
+  }
+
+  it should "find the one with apostrophe" in {
+    val addrs = IndexedSeq(
+      "gggs  aaa  ccc ccc main  rrr  eee",
+      "ggg's aaa  ccc ccc main  rrr  eee",
+      "gggs hhh aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "ggg's aaa  ccc  main  rrr eee"
+    inside(r) {
+      case Some(rs) =>
+        rs should not be 'multiTops
+        rs.top shouldBe addrs(1)
+    }
+  }
+
+  it should "fail when the only difference is the punctuation" in {
+    val addrs = IndexedSeq(
+      "gggs  aaa  ccc ccc main  rrr  eee",
+      "gggs aaa  ccc ccc main  rrr  eee",
+      "gggs hhh aaa  ccc ccc main  rrr  eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "ggg's aaa  ccc  main  rrr eee"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldBe 'multiTops
+    }
+  }
 }

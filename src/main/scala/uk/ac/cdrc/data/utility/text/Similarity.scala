@@ -27,7 +27,9 @@ trait LevenshteinDistance extends Similarity[String] {
     else {
       val dist = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if (i == 0 || j == 0) i + j else 0f)
       for (i <- 1 to a.length; j <- 1 to b.length) {
-        dist(i)(j) = if (a(i-1) == b(j-1)) dist(i - 1)(j - 1) else min(dist(i - 1)(j), dist(i)(j - 1), dist(i - 1)(j - 1)) + 1
+        dist(i)(j) =
+          if (a(i-1) == b(j-1)) dist(i - 1)(j - 1)
+          else min(dist(i - 1)(j), dist(i)(j - 1), dist(i - 1)(j - 1)) + 1
       }
       dist(a.length)(b.length)
     }
@@ -70,7 +72,8 @@ trait NumberOverlapDistance extends Similarity[IndexedSeq[String]]{
   * Binarise the overlaping distance
   */
 trait StrictNumberOverlapDistance extends NumberOverlapDistance {
-  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double = if (super.distance(a, b) < 1) 0d else 1d
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
+    if (super.distance(a, b) < 1) 0d else 1d
 }
 
 /**

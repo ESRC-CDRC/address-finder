@@ -13,7 +13,8 @@ import uk.ac.cdrc.data.utility.text.entity._
   * @param hits the scored items in (index, score) pairs, smaller scores mean closer matches
   * @param items the items in the collection the score of which are recorded in the hits
   */
-case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.MaxValue)(implicit items: IndexedSeq[String]) {
+case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.MaxValue)
+                       (implicit items: IndexedSeq[String]) {
   val orderedHits: IndexedSeq[(Int, Double)] = hits.sortBy(_._2).toIndexedSeq
 
   /**
