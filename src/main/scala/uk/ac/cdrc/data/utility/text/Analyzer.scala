@@ -68,3 +68,16 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 }
 
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String]) extends NumberSpanAnalyzer with AnalyzedPool[String, IndexedSeq[String]]
+
+
+trait NestedAnalyzer[T, U, A <: Analyzer[T, U]] extends Analyzer[T, U]{
+  val innerAnalyzer: A
+  def preProcess(e: T): T
+
+  override def process(e: T): U = innerAnalyzer.process(preProcess(e))
+}
+
+class PunctuationRemover[U, A <: Analyzer[String, U]](override val innerAnalyzer: A) extends NestedAnalyzer[String, U, A] {
+  val punctuationPattern: Regex = "[,.']+".r
+  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, " ")
+}
