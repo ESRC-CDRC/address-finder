@@ -26,6 +26,8 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag] {
   override def process(e: String): WordBag = WordBag(e)
 }
 
+object WordBagAnalyzer extends WordBagAnalyzer
+
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]
 
 class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String]) extends WordBagAnalyzer with AnalyzedPool[String, WordBag]{
@@ -44,6 +46,8 @@ trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
   override def process(e: String): IndexedSeq[String] = tokenizer.tokenize(e)
 }
+
+object WordSeqAnalyzer extends WordSeqAnalyzer
 
 class WordSeqAnalyzedPool(override val pool: IndexedSeq[String]) extends WordSeqAnalyzer with AnalyzedPool[String, IndexedSeq[String]]
 
@@ -67,17 +71,20 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] {
   }
 }
 
+object NumberSpanAnalyzer extends NumberSpanAnalyzer
+
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String]) extends NumberSpanAnalyzer with AnalyzedPool[String, IndexedSeq[String]]
 
 
-trait NestedAnalyzer[T, U, A <: Analyzer[T, U]] extends Analyzer[T, U]{
-  val innerAnalyzer: A
-  def preProcess(e: T): T
+trait NestedAnalyzer[U, A <: Analyzer[String, U]] extends Analyzer[String, U]{
+  val inner: A
 
-  override def process(e: T): U = innerAnalyzer.process(preProcess(e))
+  def preProcess(e: String): String
+  override def process(e: String): U = inner.process(preProcess(e))
 }
 
-class PunctuationRemover[U, A <: Analyzer[String, U]](override val innerAnalyzer: A) extends NestedAnalyzer[String, U, A] {
+class PunctuationRemoval[U, A <: Analyzer[String, U]](override val inner: A) extends NestedAnalyzer[U, A] {
   val punctuationPattern: Regex = "[,.']+".r
+
   override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, " ")
 }
