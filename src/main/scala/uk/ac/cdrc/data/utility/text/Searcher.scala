@@ -13,7 +13,7 @@ import uk.ac.cdrc.data.utility.text.entity._
   * @param hits the scored items in (index, score) pairs, smaller scores mean closer matches
   * @param items the items in the collection the score of which are recorded in the hits
   */
-case class SearchResult(hits: Seq[(Int, Double)])(implicit items: IndexedSeq[String]) {
+case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.MaxValue)(implicit items: IndexedSeq[String]) {
   val orderedHits: IndexedSeq[(Int, Double)] = hits.sortBy(_._2).toIndexedSeq
 
   /**
@@ -44,13 +44,14 @@ case class SearchResult(hits: Seq[(Int, Double)])(implicit items: IndexedSeq[Str
     * Get the only match if there is one
     * @return the only single match
     */
-  def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < 100.0f) Some(top) else None
+  def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < scoreLimit) Some(top) else None
 }
 
 
 trait Searcher {
   val pool: IndexedSeq[String]
 
+  val matchScoreLimit: Double = Double.MaxValue
   /**
     * Search the stored collection for the given query
     * @param q a simple string query
@@ -73,7 +74,7 @@ trait PreProcessingSearcher[U] extends Searcher {
       u = processed(i)
     } yield (i, distance(u, qwb))
 
-    Some(SearchResult(scores)(pool))
+    Some(SearchResult(scores, matchScoreLimit)(pool))
   }
 }
 
@@ -107,8 +108,8 @@ object WordBagSearcher {
   * @param weights a list of numbers deciding the weights for each searcher
   * @param pool the collection
   */
-class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
-                       (override implicit val pool: IndexedSeq[String]) extends Searcher {
+class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override val matchScoreLimit: Double)
+                       (implicit override val pool: IndexedSeq[String]) extends Searcher {
 
   /**
     * The score is a linear combination of the scores from all the sub searchers via the given weights
@@ -123,8 +124,10 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
     } yield (i, score * weight)
     if(scoreParts.isEmpty)
       None
-    else
-      Some(SearchResult(scoreParts.groupBy(_._1).mapValues{(x: Seq[(Int, Double)]) => x.map(_._2).sum}.toSeq))
+    else {
+      val scores = scoreParts.groupBy(_._1).mapValues{(x: Seq[(Int, Double)]) => x.map(_._2).sum}.toSeq
+      Some(SearchResult(scores, matchScoreLimit))
+    }
   }
 }
 
@@ -142,7 +145,7 @@ class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
 
   val weights: Seq[Double] = Seq(100, 10, 1)
 
-  val comboSearcher = new CompositeSearcher(searchers, weights)(pool)
+  val comboSearcher = new CompositeSearcher(searchers, weights, 100)(pool)
 
   override def search(q: String): Option[SearchResult] = comboSearcher.search(q)
 }

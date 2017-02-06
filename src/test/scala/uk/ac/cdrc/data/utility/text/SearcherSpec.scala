@@ -63,6 +63,7 @@ class SearcherSpec extends FlatSpec with Matchers{
       case Some(rs) =>
         rs.hits should have size 1
         rs.hits.head._2 should be > 100d
+        rs.getMatching shouldBe empty
     }
   }
 
