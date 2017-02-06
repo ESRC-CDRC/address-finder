@@ -135,7 +135,7 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override
   * A predefined address searcher that should be used
   * @param pool a set of addresses in string
   */
-class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
+class AddressSearcher(implicit override val pool: IndexedSeq[String]) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
     new NumberSpanAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
@@ -145,12 +145,12 @@ class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
 
   val weights: Seq[Double] = Seq(100, 10, 1)
 
-  val comboSearcher = new CompositeSearcher(searchers, weights, 100)(pool)
+  val comboSearcher = new CompositeSearcher(searchers, weights, 100)
 
   override def search(q: String): Option[SearchResult] = comboSearcher.search(q)
 }
 
 object AddressSearcher {
   def apply() = EmptySearcher
-  def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher(pool)
+  def apply(implicit pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher
 }
