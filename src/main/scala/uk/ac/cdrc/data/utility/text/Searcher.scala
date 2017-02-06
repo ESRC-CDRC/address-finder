@@ -51,6 +51,9 @@ case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.Ma
 trait Searcher {
   val pool: IndexedSeq[String]
 
+  /**
+    * The max score for a candidate to be accepted as a match
+    */
   val matchScoreLimit: Double = Double.MaxValue
   /**
     * Search the stored collection for the given query
@@ -84,14 +87,14 @@ trait PreProcessingSearcher[U] extends Searcher {
 case object EmptySearcher extends Searcher {
   override def search(q: String): Option[SearchResult] = None
 
-  override implicit val pool: IndexedSeq[String] = IndexedSeq.empty
+  override val pool: IndexedSeq[String] = IndexedSeq.empty
 }
 
 /**
   * A word bag based searcher
   * @param pool a pool of strings
   */
-class WordBagSearcher(override val pool: IndexedSeq[String]) extends WordBagAnalyzedPool(pool)
+class WordBagSearcher(implicit override val pool: IndexedSeq[String]) extends WordBagAnalyzedPool(pool)
   with WordBagAnalyzer
   with PreProcessingSearcher[WordBag]
   with WordBagDistance
@@ -99,13 +102,14 @@ class WordBagSearcher(override val pool: IndexedSeq[String]) extends WordBagAnal
 
 object WordBagSearcher {
   def apply() = EmptySearcher
-  def apply(pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher(pool)
+  def apply(implicit pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new WordBagSearcher
 }
 
 /**
   * A searcher that combines results from a set of searchers
   * @param searchers a list of searchers with the same collection
   * @param weights a list of numbers deciding the weights for each searcher
+  * @param matchScoreLimit same as [[uk.ac.cdrc.data.utility.text.Searcher#matchScoreLimit]]
   * @param pool the collection
   */
 class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override val matchScoreLimit: Double)
