@@ -63,7 +63,7 @@ trait Searcher {
   * A searcher with preporcessed information before querying enabled by AnalyzedPool
   * @tparam U the type of preprocessed items
   */
-trait PreproccessingSearcher[U] extends Searcher {
+trait PreProcessingSearcher[U] extends Searcher {
   self: Analyzer[String, U] with AnalyzedPool[String, U] with Similarity[U] =>
 
   override def search(q: String): Option[SearchResult] = {
@@ -92,7 +92,7 @@ case object EmptySearcher extends Searcher {
   */
 class WordBagSearcher(override val pool: IndexedSeq[String]) extends WordBagAnalyzedPool(pool)
   with WordBagAnalyzer
-  with PreproccessingSearcher[WordBag]
+  with PreProcessingSearcher[WordBag]
   with WordBagDistance
 
 
@@ -135,9 +135,9 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double])
 class AddressSearcher(override val pool: IndexedSeq[String]) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
-    new NumberSpanAnalyzedPool(pool) with PreproccessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
-    new WordBagAnalyzedPoolWithIDF(pool) with PreproccessingSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
-    new WordSeqAnalyzedPool(pool) with PreproccessingSearcher[IndexedSeq[String]] with WordPrefixDistance
+    new NumberSpanAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
+    new WordBagAnalyzedPoolWithIDF(pool) with PreProcessingSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
+    new WordSeqAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with WordPrefixDistance
   )
 
   val weights: Seq[Double] = Seq(100, 10, 1)
