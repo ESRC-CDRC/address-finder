@@ -1,3 +1,5 @@
+resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
+
 lazy val address_finder = (project in file(".")).
   aggregate(spark_jdbc_util).
   settings(inThisBuild(List(
