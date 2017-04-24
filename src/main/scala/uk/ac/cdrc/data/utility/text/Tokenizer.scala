@@ -9,6 +9,11 @@ trait Tokenizer {
   def tokenize(s: String): IndexedSeq[String]
 }
 
+trait NumPatterns {
+  val numSpanPattern: Regex = "([1-9]\\d*)\\s*-\\s*(\\d+)".r
+  val numPattern: Regex = "[1-9]\\d*".r
+}
+
 /**
   * This object provide a tokenizer that can cut between word and numbers
   * For example, "4a" will be come Seq("4", "a")
