@@ -9,9 +9,8 @@ lazy val address_finder = (project in file(".")).
     crossScalaVersions := Seq("2.10.8"))),
     name := "address-finder",
     libraryDependencies  ++= Seq(
-      "org.scalanlp" %% "breeze" % "0.11.2",
-      "org.scalanlp" %% "breeze-natives" % "0.11.2",
-      "org.scalanlp" %% "breeze-viz" % "0.11.2",
+      "org.scalanlp" %% "breeze" % "0.13",
+      "org.scalanlp" %% "breeze-natives" % "0.13",
       "org.scalatest" %% "scalatest" % "2.2.6" % "test",
       "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
     )
@@ -22,7 +21,7 @@ lazy val spark_jdbc_util = (project in file("spark-jdbc-util")).
   settings(
     name := "spark-jdbc-util",
     libraryDependencies  ++= Seq(
-      "org.apache.spark" %% "spark-sql" % "2.0.0",
+      "org.apache.spark" %% "spark-sql" % "2.1.0",
       "org.postgresql" % "postgresql" % "9.4.1212",
       "org.scalatest" %% "scalatest" % "2.2.6" % "test",
       "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
