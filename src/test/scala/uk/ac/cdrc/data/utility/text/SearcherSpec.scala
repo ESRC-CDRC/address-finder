@@ -306,4 +306,19 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs shouldBe 'multiTops
     }
   }
+
+  it should "match numbers from right to left" in {
+    val addrs = IndexedSeq(
+      "flat 3 2 gggs aaa ccc ccc main rrr eee",
+      "flat 2 3 gggs aaa ccc ccc main rrr eee",
+      "2 gggs aaa ccc ccc main rrr eee"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "3 gggs aaa ccc main  rrr eee"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldNot be ('multiTops)
+        rs.orderedHits(0)._1 should be (1)
+    }
+  }
 }

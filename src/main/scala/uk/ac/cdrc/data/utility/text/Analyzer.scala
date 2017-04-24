@@ -23,7 +23,11 @@ trait AnalyzedPool[T, U] {
   */
 trait WordBagAnalyzer extends Analyzer[String, WordBag] {
 
-  override def process(e: String): WordBag = WordBag(e)
+  val numSpanPattern: Regex = "(\\d+)\\s*-\\s*(\\d+)".r
+  val numPattern: Regex = "\\d+".r
+  override def process(e: String): WordBag = WordBag(
+    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
+  )
 }
 
 object WordBagAnalyzer extends WordBagAnalyzer
@@ -47,8 +51,13 @@ class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
 trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
   val tokenizer = DigitWordTokenizer
+  val numSpanPattern: Regex = "(\\d+)\\s*-\\s*(\\d+)".r
+  val numPattern: Regex = "\\d+".r
 
-  override def process(e: String): IndexedSeq[String] = tokenizer.tokenize(e)
+  override def process(e: String): IndexedSeq[String] = tokenizer.tokenize(
+    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
+  )
+
 }
 
 object WordSeqAnalyzer extends WordSeqAnalyzer
@@ -68,12 +77,14 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] {
   override def process(s: String): IndexedSeq[String] = {
     val numSpan = for {
       m <- (numSpanPattern findAllIn s).matchData
+      pos = m.start
       i <- m.group(1).toLong to m.group(2).toLong
-    } yield i.toString
+    } yield pos -> i.toString
     val nums = for {
-      m <- numPattern findAllIn (numSpanPattern replaceAllIn(s, " "))
-    } yield m.toString
-    (numSpan ++ nums).toIndexedSeq
+      m <- (numPattern findAllIn (numSpanPattern replaceAllIn(s, m => " " * (m.end - m.start)))).matchData
+      pos = m.start
+    } yield pos -> m.toString
+    (numSpan ++ nums).toVector.sortBy(x => x._1 -> x._2.toInt).map(_._2.toString)
   }
 }
 

@@ -10,16 +10,16 @@ import spire.std.{LevenshteinDistance => LD}
 import uk.ac.cdrc.data.utility.text.entity.WordBag
 
 class SimilaritySpec extends FlatSpec with Matchers with Checkers {
-  "Empties" should "work fine" in new LevenshteinDistance {
+  "Empties" should "work fine" in new LevenshteinStringDistance {
     distance("", "") should be (0)
     distance("a", "") should be (1)
     distance("", "b") should be (1)
   }
 
-  "Our Levenshtein distance" should "compare with spire.std.LevenshteinDistance" in new LevenshteinDistance {
+  "Our Levenshtein distance" should "compare with spire.std.LevenshteinDistance" in new LevenshteinStringDistance {
     check((a: String, b: String) => distance(a, b) == LD.distance(a, b))
   }
-  "Substrings" should "have a distance from the missing parts" in new LevenshteinDistance {
+  "Substrings" should "have a distance from the missing parts" in new LevenshteinStringDistance {
     check((a: String, b: String) => distance(a + b, b) == a.length)
     check((a: String, b: String) => distance(b + a, b) == a.length)
     check((a: String, b: String, c: String) => distance(a + b + c, b) == a.length + c.length)

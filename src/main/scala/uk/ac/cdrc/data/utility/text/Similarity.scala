@@ -16,12 +16,9 @@ trait Similarity[T] {
   def distance(a: T, b: T): Double
 }
 
-/**
-  * The Levenshtein distance which is also called edit distance.
-  * This implementation is not efficient enough for millions of rows.
-  */
-trait LevenshteinDistance extends Similarity[String] {
-  def distance[T <: IndexedSeq[_]](a: T, b: T): Double = {
+trait LevenshteinDistance[T <: IndexedSeq[_]] {
+
+  def distance(a: T, b: T): Double = {
     if (a.isEmpty) b.length
     else if (b.isEmpty) a.length
     else {
@@ -34,6 +31,13 @@ trait LevenshteinDistance extends Similarity[String] {
       dist(a.length)(b.length)
     }
   }
+}
+
+/**
+  * The Levenshtein distance which is also called edit distance.
+  * This implementation is not efficient enough for millions of rows.
+  */
+trait LevenshteinStringDistance extends Similarity[String] with LevenshteinDistance[Vector[Char]] {
   def distance(a: String, b: String): Double = distance(a.toVector, b.toVector)
 }
 
@@ -69,11 +73,20 @@ trait NumberOverlapDistance extends Similarity[IndexedSeq[String]]{
 }
 
 /**
+  * Similar to the span distance including mutual difference
+  */
+trait NumberSeqDistance extends Similarity[IndexedSeq[String]] with CommonPrefixDistance{
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
+    super[CommonPrefixDistance].distance(a.reverse, b.reverse)
+
+}
+
+/**
   * Binarise the overlaping distance
   */
-trait StrictNumberOverlapDistance extends NumberOverlapDistance {
+trait StrictNumberOverlapDistance extends NumberOverlapDistance with NumberSeqDistance{
   override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
-    if (super.distance(a, b) < 1) 0d else 1d
+    if (super[NumberOverlapDistance].distance(a, b) < 1 && super[NumberSeqDistance].distance(a, b) < 0.5) 0d else 1d
 }
 
 /**
