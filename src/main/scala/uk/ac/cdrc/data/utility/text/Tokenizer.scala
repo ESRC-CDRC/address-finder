@@ -12,6 +12,7 @@ trait Tokenizer {
 trait NumPatterns {
   val numSpanPattern: Regex = "([1-9]\\d*)\\s*-\\s*(\\d+)".r
   val numPattern: Regex = "[1-9]\\d*".r
+  val alphabetPattern: Regex = "[1-9]([a-z])\\b".r
 }
 
 /**
