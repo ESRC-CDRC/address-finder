@@ -6,7 +6,7 @@ import uk.ac.cdrc.data.utility.text.entity.WordBag
 import scala.util.matching.Regex
 
 /**
-  * Created  on 2/1/17.
+  * Analyzers are used for creating intermediate data for searching efficiency
   */
 trait Analyzer[T, U] {
   def process(e: T): U

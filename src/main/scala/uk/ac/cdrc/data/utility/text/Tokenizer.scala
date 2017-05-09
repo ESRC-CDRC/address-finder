@@ -3,7 +3,7 @@ package uk.ac.cdrc.data.utility.text
 import scala.util.matching.Regex
 
 /**
-  * Created  on 7/29/16.
+  * Tokenizers are used for creating unit tokens for matching
   */
 trait Tokenizer {
   def tokenize(s: String): IndexedSeq[String]

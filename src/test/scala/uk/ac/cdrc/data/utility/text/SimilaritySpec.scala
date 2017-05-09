@@ -1,7 +1,7 @@
 package uk.ac.cdrc.data.utility.text
 
 /**
-  * Created  on 7/25/16.
+  * Testing Similarity
   */
 
 import org.scalatest._

@@ -1,7 +1,7 @@
 package uk.ac.cdrc.data.utility.text
 
 /**
-  * Created  on 1/26/17.
+  * Testing WordStopper
   */
 import org.scalatest._
 
