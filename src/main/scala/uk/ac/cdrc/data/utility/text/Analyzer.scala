@@ -31,8 +31,8 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag] with NumPatterns{
 object WordBagAnalyzer extends WordBagAnalyzer
 
 trait NormalizedWordBagAnalyzer extends WordBagAnalyzer {
-  val normalizer = CountyAbbrNormalizer
-  override def process(e: String): WordBag = super.process(CountyAbbrNormalizer.normalize(e))
+  val normalizer: Normalizer = CountyAbbrNormalizer ++ FlatAbbrNormalizer ++ CommonAbbrNormalizer
+  override def process(e: String): WordBag = super.process(normalizer.normalize(e))
 }
 
 object NormalizedWordBagAnalyzer extends NormalizedWordBagAnalyzer

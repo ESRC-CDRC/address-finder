@@ -4,6 +4,7 @@ import scala.util.matching.Regex
 
 
 trait Normalizer {
+  self =>
   val dictionary: Seq[(Regex, String)]
   def normalize(s: String): String = {
     lazy val input: Stream[String] = s #:: output
@@ -12,17 +13,19 @@ trait Normalizer {
   }
 
   def ++(that: Normalizer): Normalizer = new Normalizer{
-    override val dictionary: Seq[(Regex, String)] = this.dictionary ++ that.dictionary
+    override val dictionary: Seq[(Regex, String)] = self.dictionary ++ that.dictionary
   }
 }
 
 
 object FlatAbbrNormalizer extends Normalizer{
   override val dictionary = Seq(
-    "^g f f".r -> "flat 0",
+    "\\bfl\\b".r -> "flat",
+    "^g f f".r -> "ground floor",
     "^f f".r -> "first floor ",
-    "gnd".r -> "0",
-    "fl".r -> "flat",
+    "^gnd ".r -> "ground",
+    "^grd ".r -> "ground",
+    "^gr ".r -> "ground",
     "1st".r -> "1",
     "2nd".r -> "2",
     "first".r -> "1",
@@ -34,7 +37,7 @@ object FlatAbbrNormalizer extends Normalizer{
 object CommonAbbrNormalizer extends Normalizer{
 
   override val dictionary = Seq(
-    "st".r -> "street"
+    "\\bst\\b".r -> "street"
   )
 
 }

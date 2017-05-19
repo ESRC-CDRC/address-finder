@@ -400,4 +400,19 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.orderedHits(0)._1 should be (0)
     }
   }
+
+  it should "find the address with abbreviations" in {
+    val addrs = IndexedSeq(
+      "10a ooo kk-dd-mm-qq-cc ppp street northumberland",
+      "10b uuu kk-dd-mm-qq-cc ppp street northumberland",
+      "10 ooo kk-dd-mm-qq-cc st ppp northd"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "10a ooo kk-dd-mm-qq-cc ppp st northd"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldNot be ('multiTops)
+        rs.orderedHits(0)._1 should be (0)
+    }
+  }
 }
