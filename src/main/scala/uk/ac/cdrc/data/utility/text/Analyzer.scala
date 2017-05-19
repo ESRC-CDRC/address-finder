@@ -71,7 +71,10 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
     val numSpan = for {
       m <- (numSpanPattern findAllIn s).matchData
       pos = m.start
-      i <- m.group(1).toLong to m.group(2).toLong
+      numStart = m.group(1).toLong
+      numEnd = m.group(2).toLong
+      if numEnd - numStart < 5 && numEnd > numStart
+      i <- numStart to numEnd
     } yield pos -> i.toString
     val nums = for {
       m <- (numPattern findAllIn (numSpanPattern replaceAllIn(s, m => " " * (m.end - m.start)))).matchData

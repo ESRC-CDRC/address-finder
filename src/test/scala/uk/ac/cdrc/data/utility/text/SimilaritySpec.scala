@@ -25,8 +25,8 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
   }
 
   "extractNumberSpan" should "work" in new NumberSpanAnalyzer{
-    process("aaa bbb ccc 1-5 ccc") should be (Array("1", "2", "3", "4", "5"))
-    process("aaa bbb ccc 1-5,6,7 ccc") should be (Array("1", "2", "3", "4", "5", "6", "7"))
+    process("aaa bbb ccc 1-4 ccc") should be (Array("1", "2", "3", "4"))
+    process("aaa bbb ccc 1-4, 5,6,7 ccc") should be (Array("1", "2", "3", "4", "5", "6", "7"))
     process("aaa bbb ccc 6,7 ccc") should be (Array("6", "7"))
     process("aaa bbb ccc 7 ccc") should be (Array("7"))
     process("aaa bbb ccc ccc") should be (Array())
