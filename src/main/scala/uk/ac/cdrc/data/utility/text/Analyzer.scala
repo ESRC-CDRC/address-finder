@@ -30,12 +30,19 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag] with NumPatterns{
 
 object WordBagAnalyzer extends WordBagAnalyzer
 
+trait NormalizedWordBagAnalyzer extends WordBagAnalyzer {
+  val normalizer = CountyAbbrNormalizer
+  override def process(e: String): WordBag = super.process(CountyAbbrNormalizer.normalize(e))
+}
+
+object NormalizedWordBagAnalyzer extends NormalizedWordBagAnalyzer
+
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
   extends WordBagAnalyzer
     with AnalyzedPool[String, WordBag]
 
 class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
-  extends PunctuationRemoval[WordBag, WordBagAnalyzer](WordBagAnalyzer)
+  extends PunctuationRemoval[WordBag, NormalizedWordBagAnalyzer](NormalizedWordBagAnalyzer)
     with AnalyzedPool[String, WordBag]{
   val idf: Counter[String, Double] = Counter.count((for {
     wb <- processed
