@@ -78,7 +78,8 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
       pos = m.start
     } yield pos -> m.toString
     val alphabets = for {
-      m <- (alphabetPattern findAllIn s).matchData
+      ptn <- Seq(alphabetPattern, alphabetFlatPattern)
+      m <- (ptn findAllIn s).matchData
     } yield (Character.getNumericValue(m.group(1).charAt(0)) - Character.getNumericValue('a') + 1).toString
     alphabets.toVector ++ (numSpan ++ nums).toVector.sortBy(x => x._1 -> x._2.toLong).map(_._2.toString)
   }

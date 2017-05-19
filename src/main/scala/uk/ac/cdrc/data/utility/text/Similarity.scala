@@ -3,9 +3,9 @@
   */
 package uk.ac.cdrc.data.utility.text
 
-import breeze.linalg.min
+import breeze.linalg.{max, min}
 import uk.ac.cdrc.data.utility.text.entity.WordBag
-import uk.ac.cdrc.data.utility.text.entity.WordBag._
+import WordBag._
 
 /**
   * The similarity interface which allows overriding the distance method
@@ -77,7 +77,10 @@ trait NumberOverlapDistance extends Similarity[IndexedSeq[String]]{
   */
 trait NumberSeqDistance extends Similarity[IndexedSeq[String]] with CommonPrefixDistance{
   override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
-    super[CommonPrefixDistance].distance(a.reverse, b.reverse)
+    if (a.isEmpty && b.isEmpty)
+      0d
+    else
+      super[CommonPrefixDistance].distance(a.reverse, b.reverse)
 
 }
 
@@ -86,7 +89,7 @@ trait NumberSeqDistance extends Similarity[IndexedSeq[String]] with CommonPrefix
   */
 trait StrictNumberOverlapDistance extends NumberOverlapDistance with NumberSeqDistance{
   override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
-    if (super[NumberOverlapDistance].distance(a, b) < 1 && super[NumberSeqDistance].distance(a, b) < 0.5) 0d else 1d
+    super[NumberOverlapDistance].distance(a, b) + super[NumberSeqDistance].distance(a, b)
 }
 
 /**
@@ -143,7 +146,7 @@ trait SymmetricWordSetDistanceWithIDF extends Similarity[WordBag] {
 trait CommonPrefixDistance {
   def distance[T](a: Seq[T], b: Seq[T]): Double = {
     val commonPrefixLength = (a zip b).takeWhile(v => v._1 == v._2).length
-    1 - commonPrefixLength / (min(a.length, b.length): Double)
+    1 - commonPrefixLength / max(a.length, b.length).toDouble
   }
 }
 

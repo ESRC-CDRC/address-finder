@@ -186,7 +186,8 @@ class SearcherSpec extends FlatSpec with Matchers{
     val r = s search "6-7 ggg aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
-        rs should be ('multiTops)
+        rs shouldNot be ('multiTops)
+        rs.top should be (addrs(1))
     }
   }
 
@@ -352,6 +353,21 @@ class SearcherSpec extends FlatSpec with Matchers{
       case Some(rs) =>
         rs shouldNot be ('multiTops)
         rs.orderedHits(0)._1 should be (2)
+    }
+  }
+
+  it should "match alphabet flat numbers when the region is abbreviated" in {
+    val addrs = IndexedSeq(
+      "2a aaa bbb eee",
+      "2 aaa bbb eec",
+      "3a aaa bbb eec"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "2a aaa bbb eec"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldNot be ('multiTops)
+        rs.orderedHits(0)._1 should be (0)
     }
   }
 }
