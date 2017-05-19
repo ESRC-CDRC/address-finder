@@ -371,103 +371,29 @@ class SearcherSpec extends FlatSpec with Matchers{
     }
   }
 
-  it should "find the address without number" in {
+  it should "find the address with county abbreviation" in {
     val addrs = IndexedSeq(
       "sss ooo kk-dd-mm-qq-cc ppp northumberland",
       "iii uuu kk-dd-mm-qq-cc ppp northumberland",
-      "ggg kk-dd-mm-qq-cc ppp northd",
-      "ggg kk-dd-mm-qq-cc ppp northd",
-      "ccc & bbb aaa kk-dd-mm-qq-cc ppp northd",
-      "ghg kk-dd-mm-qq-cc ppp northd",
-      "ghg kk-dd-mm-qq-cc ppp northd",
-      "kkm trt kk-dd-mm-qq-cc ppp northd",
-      "kkm trt kk-dd-mm-qq-cc ppp northd",
-      "lol nnn kk-dd-mm-qq-cc ppp northumberland",
-      "lol nnn kk-dd-mm-qq-cc ppp northumberland",
-      "fff lll kk-dd-mm-qq-cc ppp northd",
-      "fff lll kk-dd-mm-qq-cc ppp northd",
-      "12a kk-dd-mm-qq-cc ppp northd",
-      "2 kk-dd-mm-qq-cc ppp northd",
-      "2 kk-dd-mm-qq-cc ppp northd",
-      "3 kk-dd-mm-qq-cc ppp northd",
-      "3 kk-dd-mm-qq-cc ppp northd",
-      "4 kk-dd-mm-qq-cc ppp northd",
-      "4 kk-dd-mm-qq-cc ppp northd",
-      "7 kk-dd-mm-qq-cc ppp northd",
-      "10 kk-dd-mm-qq-cc ppp northd",
-      "10 kk-dd-mm-qq-cc ppp northd",
-      "11 kk-dd-mm-qq-cc ppp northd",
-      "11 kk-dd-mm-qq-cc ppp northd",
-      "13 kk-dd-mm-qq-cc ppp northd",
-      "13 kk-dd-mm-qq-cc ppp northd",
-      "13 kk-dd-mm-qq-cc ppp northd",
-      "14 kk-dd-mm-qq-cc ppp northd",
-      "17 kk-dd-mm-qq-cc ppp northd",
-      "19 kk-dd-mm-qq-cc ppp northd",
-      "20 kk-dd-mm-qq-cc ppp northd",
-      "21 kk-dd-mm-qq-cc ppp northumberland",
-      "21 kk-dd-mm-qq-cc ppp northumberland",
-      "21 kk-dd-mm-qq-cc ppp northumberland",
-      "21 kk-dd-mm-qq-cc ppp northumberland",
-      "16 kk-dd-mm-qq-cc ppp northd",
-      "kkm lol pzc cmm kk-dd-mm-qq-cc ppp northumberland",
-      "kkm lol pzc cmm kk-dd-mm-qq-cc ppp northumberland",
-      "poo kwk kk-dd-mm-qq-cc ppp northd",
-      "poo kwk kk-dd-mm-qq-cc ppp northd",
-      "wood ooo kk-dd-mm-qq-cc ppp northd",
-      "wood ooo kk-dd-mm-qq-cc ppp northd",
-      "kkm lol koo kk-dd-mm-qq-cc ppp northd",
-      "kkm lol koo kk-dd-mm-qq-cc ppp northd",
-      "kkm ioi kk-dd-mm-qq-cc ppp northd",
-      "kkm ioi kk-dd-mm-qq-cc ppp northd",
-      "iik zmo ooo kk-dd-mm-qq-cc ppp northumberland",
-      "iik zmo ooo kk-dd-mm-qq-cc ppp northumberland",
-      "12a kk-dd-mm-qq-cc ppp northd",
-      "13 kk-dd-mm-qq-cc ppp northd",
-      "21 kk-dd-mm-qq-cc ppp northumberland",
-      "kkm lol pzc cmm kk-dd-mm-qq-cc ppp northumberland",
-      "3 kk-dd-mm-qq-cc ppp northd",
-      "ghg kk-dd-mm-qq-cc ppp northd",
-      "ghg kk-dd-mm-qq-cc ppp northd",
-      "kkm eeg kk-dd-mm-qq-cc ppp northd",
-      "kkm eeg kk-dd-mm-qq-cc ppp northd",
-      "9 kk-dd-mm-qq-cc ppp northd",
-      "18 kk-dd-mm-qq-cc ppp northd",
-      "poo kwk kk-dd-mm-qq-cc ppp northd",
-      "iii uuu kk-dd-mm-qq-cc ppp northumberland",
-      "3 kk-dd-mm-qq-cc ppp northd",
-      "xkd wxq kk-dd-mm-qq-cc ppp northd",
-      "xkd wxq kk-dd-mm-qq-cc ppp northd",
-      "6 kk-dd-mm-qq-cc ppp northd",
-      "10 kk-dd-mm-qq-cc ppp northd",
-      "mmk plo kk-dd-mm-qq-cc ppp northd",
-      "mmk plo kk-dd-mm-qq-cc ppp northd",
-      "5 kk-dd-mm-qq-cc ppp northd",
-      "19 kk-dd-mm-qq-cc ppp northd",
-      "15 kk-dd-mm-qq-cc ppp northd",
-      "poo kwk kk-dd-mm-qq-cc ppp northd",
-      "kkk kk-dd-mm-qq-cc ppp northd",
-      "kkk kk-dd-mm-qq-cc ppp northd",
-      "kkm mmm uuu kk-dd-mm-qq-cc ppp northd",
-      "kkm mmm uuu kk-dd-mm-qq-cc ppp northd",
-      "kkm mmm uuu kk-dd-mm-qq-cc ppp northd",
-      "16 kk-dd-mm-qq-cc ppp northd",
-      "ssslea kk-dd-mm-qq-cc ppp northd",
-      "1 ddd rrr kk-dd-mm-qq-cc ppp northd",
-      "kkm mmm uuu kk-dd-mm-qq-cc ppp northd",
-      "highiii kk-dd-mm-qq-cc ppp northd",
-      "highiii kk-dd-mm-qq-cc ppp northd",
-      "highiii kk-dd-mm-qq-cc ppp northd",
-      "xkd wxq kk-dd-mm-qq-cc ppp northd",
-      "3 kk-dd-mm-qq-cc ppp northd",
-      "13 kk-dd-mm-qq-cc ppp northd",
-      "12 kk-dd-mm-qq-cc ppp northd",
-      "12 kk-dd-mm-qq-cc ppp northd",
-      "8 kk-dd-mm-qq-cc ppp northd",
-      "8 kk-dd-mm-qq-cc ppp northd"
+      "ggg ooo kk-dd-mm-qq-cc ppp northd"
     )
     val s = AddressSearcher(addrs)
     val r = s search "sss ooo kk-dd-mm-qq-cc ppp northd"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldNot be ('multiTops)
+        rs.orderedHits(0)._1 should be (0)
+    }
+  }
+
+  it should "find the address with county names in full and abbreviation" in {
+    val addrs = IndexedSeq(
+      "10a ooo kk-dd-mm-qq-cc ppp northumberland",
+      "10b uuu kk-dd-mm-qq-cc ppp northumberland",
+      "10 ooo kk-dd-mm-qq-cc ppp northd"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "10a ooo kk-dd-mm-qq-cc ppp northd"
     inside(r) {
       case Some(rs) =>
         rs shouldNot be ('multiTops)
