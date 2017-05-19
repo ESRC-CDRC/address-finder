@@ -45,7 +45,7 @@ case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.Ma
     * Get the only match if there is one
     * @return the only single match
     */
-  def getMatching: Option[String] = if (!multiTops && orderedHits.head._2 < scoreLimit) Some(top) else None
+  def matched: Option[String] = if (!multiTops && orderedHits.head._2 < scoreLimit) Some(top) else None
 }
 
 
