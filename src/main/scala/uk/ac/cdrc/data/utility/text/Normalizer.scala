@@ -21,7 +21,8 @@ trait Normalizer {
 object FlatAbbrNormalizer extends Normalizer{
   override val dictionary = Seq(
     "\\bfl\\b".r -> "flat",
-    "^g f f".r -> "ground floor",
+    "^g f f".r -> "ground floor flat",
+    "^g f".r -> "ground floor",
     "^f f".r -> "first floor ",
     "^gnd ".r -> "ground",
     "^grd ".r -> "ground",
