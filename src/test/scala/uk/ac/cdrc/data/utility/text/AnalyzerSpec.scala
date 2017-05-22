@@ -22,6 +22,7 @@ class AnalyzerSpec extends FlatSpec with Matchers{
     process("aaa bbb ccc ccc") should be (Array())
     process("1-1 28 ddd mmm kkk sss") should be (Array("1", "1", "28"))
     process("1/1 28 ddd mmm kkk sss") should be (Array("1", "1", "28"))
+    process("40a fff ppp kkk") should be (Array("1", "40"))
   }
 
 }
