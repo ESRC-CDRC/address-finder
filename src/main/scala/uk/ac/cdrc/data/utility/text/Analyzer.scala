@@ -78,20 +78,21 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
     val numSpan = for {
       m <- (numSpanPattern findAllIn s).matchData
       pos = m.start
-      numStart = m.group(1).toLong
-      numEnd = m.group(2).toLong
-      if numEnd - numStart < 5 && numEnd > numStart
+      numStart = m.group(1).toLong + 1
+      numEnd = m.group(2).toLong - 1
+      if numEnd - numStart < 3 && numEnd > numStart
       i <- numStart to numEnd
     } yield pos -> i.toString
     val nums = for {
-      m <- (numPattern findAllIn (numSpanPattern replaceAllIn(s, m => " " * (m.end - m.start)))).matchData
+      m <- (numPattern findAllIn s).matchData
       pos = m.start
     } yield pos -> m.toString
     val alphabets = for {
       ptn <- Seq(alphabetPattern, alphabetFlatPattern)
       m <- (ptn findAllIn s).matchData
     } yield (Character.getNumericValue(m.group(1).charAt(0)) - Character.getNumericValue('a') + 1).toString
-    alphabets.toVector ++ (numSpan ++ nums).toVector.sortBy(x => x._1 -> x._2.toLong).map(_._2.toString)
+    val allNums = (numSpan ++ nums).toVector
+    alphabets.toVector ++ allNums.toSet.toVector.sortBy((x: (Int, String)) => x._1 -> x._2.toLong).map(_._2.toString)
   }
 }
 
