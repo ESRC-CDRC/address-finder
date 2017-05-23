@@ -3,50 +3,35 @@ package uk.ac.cdrc.data.utility.text
 import scala.util.matching.Regex
 
 
-trait Normalizer {
-  self =>
+trait Normalizer[U] extends PreProcessor[U] {
+
   val dictionary: Seq[(Regex, String)]
-  def normalize(s: String): String = {
+
+  override def preProcess(s: String): String = {
     lazy val input: Stream[String] = s #:: output
     lazy val output: Stream[String] = (input zip dictionary) map {x => x._2._1 replaceAllIn (x._1, x._2._2)}
-    output.reduce((a: String, b: String) => b)
-  }
-
-  def ++(that: Normalizer): Normalizer = new Normalizer{
-    override val dictionary: Seq[(Regex, String)] = self.dictionary ++ that.dictionary
+    output.reduce((_: String, b: String) => b)
   }
 }
 
 
-object FlatAbbrNormalizer extends Normalizer{
+trait CommonNormalizer[U] extends Normalizer[U]{
   override val dictionary = Seq(
-    "\\bfl\\b".r -> "flat",
-    "^g f f".r -> "ground floor flat",
-    "^g f".r -> "ground floor",
-    "^f f".r -> "first floor ",
-    "^gnd ".r -> "ground",
-    "^grd ".r -> "ground",
-    "^gr ".r -> "ground",
-    "1st".r -> "1",
-    "2nd".r -> "2",
-    "first".r -> "1",
-    "second".r -> "2",
-    "ground".r -> "0"
-  )
-}
-
-object CommonAbbrNormalizer extends Normalizer{
-
-  override val dictionary = Seq(
-    "\\bst\\b".r -> "street"
-  )
-
-}
-
-object CountyAbbrNormalizer extends Normalizer {
-
-  // from https://en.wikipedia.org/wiki/Postal_counties_of_the_United_Kingdom
-  override val dictionary = Seq(
+    // Flat abbr
+    "\\bfl\\b".r -> " flat ",
+    "g f f".r -> " ground floor flat ",
+    "\\bg f\\b".r -> " ground floor",
+    "\\bf f\\b".r -> " first floor ",
+    "^gnd\\b".r -> "ground ",
+    "^grd\\b".r -> "ground ",
+    "^gr\\b".r -> "ground ",
+    "first".r -> "1st",
+    "second".r -> "2nd",
+    "ground".r -> "0ground",
+    //common abbr
+    "\\bst\\b".r -> "street",
+    "\\brd\\b".r -> "road",
+    // from https://en.wikipedia.org/wiki/Postal_counties_of_the_United_Kingdom
     // England
     "beds$".r -> "bedfordshire",
     "berks$".r -> "berkshire",

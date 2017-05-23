@@ -7,12 +7,16 @@ import org.scalatest.{FlatSpec, Matchers}
   */
 class AnalyzerSpec extends FlatSpec with Matchers{
   "A nested analyzer" should "work" in {
-      class NestedWordSeqAnalyzedPool(override val pool: IndexedSeq[String])
-        extends PunctuationRemoval[IndexedSeq[String], WordSeqAnalyzer](WordSeqAnalyzer)
-          with AnalyzedPool[String, IndexedSeq[String]]
-      val nwsap = new NestedWordSeqAnalyzedPool(IndexedSeq("aaa, bbb, ccc", "bbb,ccc,ddd"))
-      nwsap.processed.head should contain ("aaa")
+
+    class NestedWordSeqAnalyzedPool(override val pool: IndexedSeq[String])
+      extends AnalyzedPool[String, IndexedSeq[String]]
+        with PunctuationRemoval[IndexedSeq[String]]{
+
+      val inner = new WordSeqAnalyzer {}
     }
+    val nwsap = new NestedWordSeqAnalyzedPool(IndexedSeq("aaa, bbb, ccc", "bbb,ccc,ddd"))
+    nwsap.processed.head should contain ("aaa")
+  }
 
   "extractNumberSpan" should "work" in new NumberSpanAnalyzer{
     process("aaa bbb ccc 1-4 ccc") should be (Array("1", "2", "3", "4"))

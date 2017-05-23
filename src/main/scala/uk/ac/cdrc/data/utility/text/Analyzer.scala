@@ -15,41 +15,65 @@ trait Analyzer[T, U] {
 trait AnalyzedPool[T, U] {
   self: Analyzer[T, U] =>
   val pool: IndexedSeq[T]
-  val processed: IndexedSeq[U] = for (e <- pool) yield process(e)
+  lazy val processed: IndexedSeq[U] = for (e <- pool) yield process(e)
 }
+
+trait PreProcessor[U] extends Analyzer[String, U] {
+  val inner: Analyzer[String, U]
+
+  def preProcess(e: String): String
+  override def process(e: String): U = inner.process(preProcess(e))
+}
+
+trait PunctuationRemoval[U] extends PreProcessor[U] {
+
+  val punctuationPattern: Regex = "[,.']+".r
+
+  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, "")
+}
+
+trait NumberRemoval[U] extends PreProcessor[U] with NumPatterns{
+  override def preProcess(e: String): String =
+    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
+
+}
+
 
 /**
   * Word bag based analyzer and pooled storage
   */
-trait WordBagAnalyzer extends Analyzer[String, WordBag] with NumPatterns{
+trait WordBagAnalyzer extends Analyzer[String, WordBag]{
 
-  override def process(e: String): WordBag = WordBag(
-    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
-  )
+  override def process(e: String): WordBag = WordBag(e)
 }
 
-object WordBagAnalyzer extends WordBagAnalyzer
-
-trait NormalizedWordBagAnalyzer extends WordBagAnalyzer {
-  val normalizer: Normalizer = CountyAbbrNormalizer ++ FlatAbbrNormalizer ++ CommonAbbrNormalizer
-  override def process(e: String): WordBag = super.process(normalizer.normalize(e))
+trait WordBagAnalyzerWithoutNums
+  extends NumberRemoval[WordBag]{
+  override val inner = new WordBagAnalyzer{}
 }
 
-object NormalizedWordBagAnalyzer extends NormalizedWordBagAnalyzer
+trait NormalizedWordBagAnalyzer
+  extends CommonNormalizer[WordBag]{
+  override val inner = new WordBagAnalyzerWithoutNums {}
+}
 
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
-  extends WordBagAnalyzer
+  extends WordBagAnalyzerWithoutNums
     with AnalyzedPool[String, WordBag]
 
-class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
-  extends PunctuationRemoval[WordBag, NormalizedWordBagAnalyzer](NormalizedWordBagAnalyzer)
+trait WordBagIDF
+  extends Analyzer[String, WordBag]
     with AnalyzedPool[String, WordBag]{
-  val idf: Counter[String, Double] = Counter.count((for {
+  lazy val idf: Counter[String, Double] = Counter.count((for {
     wb <- processed
     word <- wb.keySet
   } yield word): _*).mapValues(x => 1 + math.log10(processed.length.toFloat / (x + 1)))
 }
 
+
+class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
+  extends WordBagIDF
+    with NormalizedWordBagAnalyzer
 /**
   * Word sequence based analyzer and pooled storage
   */
@@ -62,8 +86,6 @@ trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPatte
   )
 
 }
-
-object WordSeqAnalyzer extends WordSeqAnalyzer
 
 class WordSeqAnalyzedPool(override val pool: IndexedSeq[String])
   extends WordSeqAnalyzer
@@ -96,22 +118,13 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
   }
 }
 
-object NumberSpanAnalyzer extends NumberSpanAnalyzer
+trait NormalizedNumberSpanAnalyzer
+  extends CommonNormalizer[IndexedSeq[String]] {
+  override val inner = new NumberSpanAnalyzer {}
+}
 
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
-  extends NumberSpanAnalyzer
+  extends NormalizedNumberSpanAnalyzer
     with AnalyzedPool[String, IndexedSeq[String]]
 
 
-trait NestedAnalyzer[U, A <: Analyzer[String, U]] extends Analyzer[String, U]{
-  val inner: A
-
-  def preProcess(e: String): String
-  override def process(e: String): U = inner.process(preProcess(e))
-}
-
-class PunctuationRemoval[U, A <: Analyzer[String, U]](override val inner: A) extends NestedAnalyzer[U, A] {
-  val punctuationPattern: Regex = "[,.']+".r
-
-  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, "")
-}
