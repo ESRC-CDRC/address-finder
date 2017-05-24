@@ -27,4 +27,17 @@ class AnalyzerSpec extends FlatSpec with Matchers{
     process("40a fff ppp kkk") should be (Array("1", "40"))
   }
 
+  "Multiple preprocessors" should "work" in {
+
+    class NestedWordSeqAnalyzedPool(override val pool: IndexedSeq[String])
+      extends AnalyzedPool[String, IndexedSeq[String]]
+        with WordSeqAnalyzer
+        with PunctuationRemoval[IndexedSeq[String]]
+        with NumberRemoval[IndexedSeq[String]]
+    val nwsap = new NestedWordSeqAnalyzedPool(IndexedSeq("1 aaa, bbb, ccc", "bbb,ccc,ddd"))
+    nwsap.processed.head shouldNot contain ("1")
+    nwsap.processed.head shouldNot contain ("aaa,")
+    nwsap.processed.head should contain ("aaa")
+    nwsap.processed.head should contain ("bbb")
+  }
 }

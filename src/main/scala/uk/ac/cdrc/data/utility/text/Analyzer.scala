@@ -20,7 +20,7 @@ trait AnalyzedPool[T, U] {
 
 trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
 
-  def preprocess(e: String): String
+  def preprocess(e: String): String = e
   abstract override def process(e: String): U = super.process(preprocess(e))
 }
 
@@ -28,13 +28,13 @@ trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 
   val punctuationPattern: Regex = "[,.']+".r
 
-  override def preprocess(e: String): String = punctuationPattern replaceAllIn(e, "")
+  abstract override def preprocess(e: String): String = punctuationPattern replaceAllIn(super.preprocess(e), " ")
 }
 
 trait NumberRemoval[U] extends PreprocessedAnalyzer[U] with NumPatterns{
 
-  override def preprocess(e: String): String =
-    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
+  abstract override def preprocess(e: String): String =
+    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(super.preprocess(e), " "), " ")
 
 }
 
