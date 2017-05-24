@@ -4,7 +4,6 @@ import scala.util.matching.Regex
 
 
 trait Normalizer[U] extends PreprocessedAnalyzer[U] {
-
   val dictionary: Seq[(Regex, String)]
 
   override def preprocess(s: String): String = {
@@ -16,6 +15,7 @@ trait Normalizer[U] extends PreprocessedAnalyzer[U] {
 
 
 trait CommonNormalizer[U] extends Normalizer[U]{
+
   override val dictionary = Seq(
     // Flat abbr
     "\\bfl\\b".r -> " flat ",

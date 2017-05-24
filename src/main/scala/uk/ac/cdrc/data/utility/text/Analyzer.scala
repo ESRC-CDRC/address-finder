@@ -19,10 +19,9 @@ trait AnalyzedPool[T, U] {
 }
 
 trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
-  val baseAnalyzer: Analyzer[String, U]
 
   def preprocess(e: String): String
-  override def process(e: String): U = baseAnalyzer.process(preprocess(e))
+  abstract override def process(e: String): U = super.process(preprocess(e))
 }
 
 trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
@@ -33,6 +32,7 @@ trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 }
 
 trait NumberRemoval[U] extends PreprocessedAnalyzer[U] with NumPatterns{
+
   override def preprocess(e: String): String =
     numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
 
@@ -48,18 +48,18 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag]{
 }
 
 trait WordBagAnalyzerWithoutNums
-  extends NumberRemoval[WordBag]{
-  override val baseAnalyzer = new WordBagAnalyzer{}
-}
+  extends WordBagAnalyzer
+  with NumberRemoval[WordBag]
+
 
 trait NormalizedWordBagAnalyzer
-  extends CommonNormalizer[WordBag]{
-  override val baseAnalyzer = new WordBagAnalyzerWithoutNums {}
-}
+  extends WordBagAnalyzerWithoutNums
+    with CommonNormalizer[WordBag]
 
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
   extends WordBagAnalyzerWithoutNums
     with AnalyzedPool[String, WordBag]
+
 
 trait WordBagIDF
   extends Analyzer[String, WordBag]
@@ -81,7 +81,7 @@ trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPatte
 
   val tokenizer = DigitWordTokenizer
 
-  override def process(e: String): IndexedSeq[String] = tokenizer.tokenize(
+  def process(e: String): IndexedSeq[String] = tokenizer.tokenize(
     numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
   )
 
@@ -119,9 +119,6 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
 }
 
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
-    extends CommonNormalizer[IndexedSeq[String]]
-      with AnalyzedPool[String, IndexedSeq[String]] {
-  override val baseAnalyzer = new NumberSpanAnalyzer {}
-}
-
-
+    extends NumberSpanAnalyzer
+      with CommonNormalizer[IndexedSeq[String]]
+      with AnalyzedPool[String, IndexedSeq[String]]
