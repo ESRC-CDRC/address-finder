@@ -3,11 +3,11 @@ package uk.ac.cdrc.data.utility.text
 import scala.util.matching.Regex
 
 
-trait Normalizer[U] extends PreProcessor[U] {
+trait Normalizer[U] extends PreprocessedAnalyzer[U] {
 
   val dictionary: Seq[(Regex, String)]
 
-  override def preProcess(s: String): String = {
+  override def preprocess(s: String): String = {
     lazy val input: Stream[String] = s #:: output
     lazy val output: Stream[String] = (input zip dictionary) map {x => x._2._1 replaceAllIn (x._1, x._2._2)}
     output.reduce((_: String, b: String) => b)

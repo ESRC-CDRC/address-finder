@@ -18,22 +18,22 @@ trait AnalyzedPool[T, U] {
   lazy val processed: IndexedSeq[U] = for (e <- pool) yield process(e)
 }
 
-trait PreProcessor[U] extends Analyzer[String, U] {
-  val inner: Analyzer[String, U]
+trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
+  val baseAnalyzer: Analyzer[String, U]
 
-  def preProcess(e: String): String
-  override def process(e: String): U = inner.process(preProcess(e))
+  def preprocess(e: String): String
+  override def process(e: String): U = baseAnalyzer.process(preprocess(e))
 }
 
-trait PunctuationRemoval[U] extends PreProcessor[U] {
+trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 
   val punctuationPattern: Regex = "[,.']+".r
 
-  override def preProcess(e: String): String = punctuationPattern replaceAllIn(e, "")
+  override def preprocess(e: String): String = punctuationPattern replaceAllIn(e, "")
 }
 
-trait NumberRemoval[U] extends PreProcessor[U] with NumPatterns{
-  override def preProcess(e: String): String =
+trait NumberRemoval[U] extends PreprocessedAnalyzer[U] with NumPatterns{
+  override def preprocess(e: String): String =
     numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
 
 }
@@ -49,12 +49,12 @@ trait WordBagAnalyzer extends Analyzer[String, WordBag]{
 
 trait WordBagAnalyzerWithoutNums
   extends NumberRemoval[WordBag]{
-  override val inner = new WordBagAnalyzer{}
+  override val baseAnalyzer = new WordBagAnalyzer{}
 }
 
 trait NormalizedWordBagAnalyzer
   extends CommonNormalizer[WordBag]{
-  override val inner = new WordBagAnalyzerWithoutNums {}
+  override val baseAnalyzer = new WordBagAnalyzerWithoutNums {}
 }
 
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
@@ -118,13 +118,10 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
   }
 }
 
-trait NormalizedNumberSpanAnalyzer
-  extends CommonNormalizer[IndexedSeq[String]] {
-  override val inner = new NumberSpanAnalyzer {}
-}
-
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
-  extends NormalizedNumberSpanAnalyzer
-    with AnalyzedPool[String, IndexedSeq[String]]
+    extends CommonNormalizer[IndexedSeq[String]]
+      with AnalyzedPool[String, IndexedSeq[String]] {
+  override val baseAnalyzer = new NumberSpanAnalyzer {}
+}
 
 

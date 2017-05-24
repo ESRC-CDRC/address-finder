@@ -12,7 +12,7 @@ class AnalyzerSpec extends FlatSpec with Matchers{
       extends AnalyzedPool[String, IndexedSeq[String]]
         with PunctuationRemoval[IndexedSeq[String]]{
 
-      val inner = new WordSeqAnalyzer {}
+      val baseAnalyzer = new WordSeqAnalyzer {}
     }
     val nwsap = new NestedWordSeqAnalyzedPool(IndexedSeq("aaa, bbb, ccc", "bbb,ccc,ddd"))
     nwsap.processed.head should contain ("aaa")
