@@ -23,6 +23,7 @@ trait CommonNormalizer[U] extends Normalizer[U]{
     "^g(?=[^a-z])".r -> " ground ",
     "\\bg f\\b".r -> " ground floor",
     "\\bf f\\b".r -> " first floor ",
+    "\\bt f\\b".r -> " first floor ",
     "^gnd(?=[^a-z])".r -> "ground ",
     "^grd(?=[^a-z])".r -> "ground ",
     "^gr(?=[^a-z])".r -> "ground ",

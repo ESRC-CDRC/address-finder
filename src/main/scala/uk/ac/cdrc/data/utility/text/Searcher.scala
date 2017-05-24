@@ -148,7 +148,7 @@ class AddressSearcher(implicit override val pool: IndexedSeq[String]) extends Se
     new WordSeqAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with WordPrefixDistance
   )
 
-  val weights: Seq[Double] = Seq(100, 10, 1)
+  val weights: Seq[Double] = Seq(100, 10, 10)
 
   val comboSearcher = new CompositeSearcher(searchers, weights, 100)
 
