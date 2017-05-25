@@ -26,7 +26,7 @@ trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
 
 trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 
-  private val punctuationPattern: Regex = "[,.']+".r
+  private val punctuationPattern: Regex = "[,.'/]".r
 
   abstract override def preprocess(e: String): String = punctuationPattern replaceAllIn(super.preprocess(e), " ")
 }
