@@ -26,15 +26,17 @@ trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
 
 trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 
-  val punctuationPattern: Regex = "[,.']+".r
+  private val punctuationPattern: Regex = "[,.']+".r
 
   abstract override def preprocess(e: String): String = punctuationPattern replaceAllIn(super.preprocess(e), " ")
 }
 
 trait NumberRemoval[U] extends PreprocessedAnalyzer[U] with NumPatterns{
 
+  private val patterns = Seq(numSpanPattern, orderedNumPattern, numPattern)
+
   abstract override def preprocess(e: String): String =
-    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(super.preprocess(e), " "), " ")
+    (super.preprocess(e) /: patterns) {case (x, ptn) => ptn.replaceAllIn(x, " ")}
 
 }
 
@@ -54,7 +56,8 @@ trait WordBagAnalyzerWithoutNums
 
 trait NormalizedWordBagAnalyzer
   extends WordBagAnalyzerWithoutNums
-    with CommonNormalizer[WordBag]
+    with PunctuationRemoval[WordBag]
+    with TextNormalizer[WordBag]
 
 class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
   extends WordBagAnalyzerWithoutNums
@@ -77,18 +80,18 @@ class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
 /**
   * Word sequence based analyzer and pooled storage
   */
-trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPatterns {
+trait WordSeqAnalyzer extends Analyzer[String, IndexedSeq[String]] {
 
   val tokenizer = DigitWordTokenizer
 
-  def process(e: String): IndexedSeq[String] = tokenizer.tokenize(
-    numPattern.replaceAllIn(numSpanPattern.replaceAllIn(e, " "), " ")
-  )
+  def process(e: String): IndexedSeq[String] = tokenizer.tokenize(e)
 
 }
 
 class WordSeqAnalyzedPool(override val pool: IndexedSeq[String])
   extends WordSeqAnalyzer
+    with NumberRemoval[IndexedSeq[String]]
+    with TextNormalizer[IndexedSeq[String]]
     with AnalyzedPool[String, IndexedSeq[String]]
 
 /**
@@ -120,5 +123,5 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
 
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
     extends NumberSpanAnalyzer
-      with CommonNormalizer[IndexedSeq[String]]
+      with NumberNormalizer[IndexedSeq[String]]
       with AnalyzedPool[String, IndexedSeq[String]]

@@ -6,15 +6,30 @@ import scala.util.matching.Regex
 trait Normalizer[U] extends PreprocessedAnalyzer[U] {
   val dictionary: Seq[(Regex, String)]
 
-  override def preprocess(s: String): String = {
-    lazy val input: Stream[String] = s #:: output
-    lazy val output: Stream[String] = (input zip dictionary) map {x => x._2._1 replaceAllIn (x._1, x._2._2)}
-    output.reduce((_: String, b: String) => b)
-  }
+  abstract override def preprocess(s: String): String = substitute(super.preprocess(s), dictionary)
+
+  def substitute(s: String, patterns: Seq[(Regex, String)]) =
+    (s /: patterns) {case(x, (ptn, sub)) => ptn replaceAllIn (x, sub)}
 }
 
 
-trait CommonNormalizer[U] extends Normalizer[U]{
+trait NumberNormalizer[U] extends Normalizer[U]{
+  override val dictionary = Seq(
+    "g f f".r -> " 0 ",
+    "^g(?=[^a-z])".r -> " 0 ",
+    "\\bg f\\b".r -> " 0 ",
+    "\\bf f\\b".r -> " 1 ",
+    "^gnd(?=[^a-z])".r -> "0 ",
+    "^grd(?=[^a-z])".r -> "0 ",
+    "^gr(?=[^a-z])".r -> "0 ",
+    "\\bfirst\\b".r -> " 1 ",
+    "\\bsecond".r -> " 2 ",
+    "\\bground\\b".r -> " 0 "
+  )
+}
+
+
+trait TextNormalizer[U] extends Normalizer[U]{
 
   override val dictionary = Seq(
     // Flat abbr
@@ -27,9 +42,8 @@ trait CommonNormalizer[U] extends Normalizer[U]{
     "^gnd(?=[^a-z])".r -> "ground ",
     "^grd(?=[^a-z])".r -> "ground ",
     "^gr(?=[^a-z])".r -> "ground ",
-    "first".r -> "1st",
-    "second".r -> "2nd",
-    "ground".r -> "0 ground",
+    "1st".r -> "first",
+    "2nd".r -> "second",
     //common abbr
     "\\bst\\b".r -> "street",
     "\\brd\\b".r -> "road",

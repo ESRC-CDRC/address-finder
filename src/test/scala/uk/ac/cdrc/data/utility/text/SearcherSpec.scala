@@ -456,4 +456,18 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.orderedHits(0)._1 should be (0)
     }
   }
+  it should "match to the normalized 4" in {
+    val addrs = IndexedSeq(
+      "mmm ddd bbb lane pxc st. kmm buckinghamshire",
+      "kkk ddd bbb lane pxc st kmm bucks",
+      "fff ppp bbb lane pxc st kmm bucks"
+    )
+    val s = AddressSearcher(addrs)
+    val r = s search "mmm ddd bbb lane pxc st. kmm bucks"
+    inside(r) {
+      case Some(rs) =>
+        rs shouldNot be ('multiTops)
+        rs.orderedHits(0)._1 should be (0)
+    }
+  }
 }
