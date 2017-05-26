@@ -123,5 +123,6 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
 
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
     extends NumberSpanAnalyzer
+      with PunctuationRemoval[IndexedSeq[String]]
       with NumberNormalizer[IndexedSeq[String]]
       with AnalyzedPool[String, IndexedSeq[String]]

@@ -74,9 +74,20 @@ trait PreProcessingSearcher[U] extends Searcher {
   override def search(q: String): Option[SearchResult] = {
     val qwb = process(q)
     val scores = for {
-      i <- processed.indices
-      u = processed(i)
+      (u, i) <- processed.zipWithIndex
     } yield (i, distance(u, qwb))
+
+    Some(SearchResult(scores, matchScoreLimit)(pool))
+  }
+}
+
+class PooledSearcher(implicit override val pool: IndexedSeq[String]) extends Searcher {
+  self: Similarity[String] =>
+
+  override def search(q: String): Option[SearchResult] = {
+    val scores = for {
+      (u, i) <- pool.zipWithIndex
+    } yield (i, distance(u, q))
 
     Some(SearchResult(scores, matchScoreLimit)(pool))
   }
@@ -144,8 +155,8 @@ class AddressSearcher(implicit override val pool: IndexedSeq[String]) extends Se
 
   val searchers: Seq[Searcher] = Seq(
     new NumberSpanAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
-    new WordBagAnalyzedPoolWithIDF(pool) with PreProcessingSearcher[WordBag] with SymmetricWordSetDistanceWithIDF,
-    new WordSeqAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with WordPrefixDistance
+    new WordBagAnalyzedPoolWithIDF(pool) with PreProcessingSearcher[WordBag] with WordSetDistanceWithIDF,
+    new PooledSearcher with WeightedLevenshteinStringDistance
   )
 
   val weights: Seq[Double] = Seq(100, 10, 10)

@@ -16,9 +16,13 @@ trait Similarity[T] {
   def distance(a: T, b: T): Double
 }
 
+/**
+  * The Levenshtein distance which is also called edit distance.
+  * This implementation is not efficient enough for millions of rows.
+  */
 trait LevenshteinDistance[T <: IndexedSeq[_]] {
 
-  def distance(a: T, b: T): Double = {
+  def edit_distance(a: T, b: T): Double = {
     if (a.isEmpty) b.length
     else if (b.isEmpty) a.length
     else {
@@ -34,14 +38,45 @@ trait LevenshteinDistance[T <: IndexedSeq[_]] {
 }
 
 /**
-  * The Levenshtein distance which is also called edit distance.
-  * This implementation is not efficient enough for millions of rows.
+  * Emphasize the difference at the beginning of the two strings
   */
-trait LevenshteinStringDistance extends Similarity[String] with LevenshteinDistance[Vector[Char]] {
-  def distance(a: String, b: String): Double = distance(a.toVector, b.toVector)
+trait WeightedLevenshteinDistance[T <: IndexedSeq[_]] {
+
+  def edit_distance(a: T, b: T): Double = {
+    if (a.isEmpty) b.length
+    else if (b.isEmpty) a.length
+    else {
+      val dist = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if (i == 0 || j == 0) i + j else 0f)
+      for (i <- 1 to a.length; j <- 1 to b.length) {
+        dist(i)(j) =
+          if (a(i-1) == b(j-1)) dist(i - 1)(j - 1)
+          else min(
+            dist(i - 1)(j),
+            dist(i)(j - 1),
+            dist(i - 1)(j - 1)) + (if (b(j-1) == ' ' || a(i-1) == ' ') 0.01f else (b.length - j) / b.length.toFloat)
+      }
+      dist(a.length)(b.length)
+    }
+  }
 }
 
+trait LevenshteinStringDistance
+  extends Similarity[String]
+    with LevenshteinDistance[Vector[Char]] {
+  def distance(a: String, b: String): Double = edit_distance(a.toVector, b.toVector)
+}
 
+trait LevenshteinWordSeqDistance
+  extends Similarity[IndexedSeq[String]]
+    with LevenshteinDistance[IndexedSeq[String]] {
+  def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double = edit_distance(a, b)
+}
+
+trait WeightedLevenshteinStringDistance
+  extends Similarity[String]
+    with WeightedLevenshteinDistance[Vector[Char]] {
+  def distance(a: String, b: String): Double = edit_distance(a.toVector, b.toVector)
+}
 /**
   * Defines the distance between two set of numbers in addresses
   * emphasizing on whether the number appearing in the target (b)
@@ -117,7 +152,7 @@ trait PriorityWordDistance extends Similarity[IndexedSeq[String]] {
   }
   override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double = {
     (for {
-      w <- a.toSet -- b.toSet
+      w <- b.toSet -- a.toSet
     } yield posWeight(a, w) + posWeight(b, w)).sum
   }
 }
@@ -137,6 +172,16 @@ trait SymmetricWordSetDistanceWithIDF extends Similarity[WordBag] {
   self: WordBagAnalyzedPoolWithIDF =>
   def distance(a: WordBag, b: WordBag): Double = (for {
     word <- (b.keySet -- a.keySet) ++ (a.keySet -- b.keySet)
+  } yield idf(word)).sum
+}
+
+/**
+  * Using IDF to weight the single side difference
+  */
+trait WordSetDistanceWithIDF extends Similarity[WordBag] {
+  self: WordBagAnalyzedPoolWithIDF =>
+  def distance(a: WordBag, b: WordBag): Double = (for {
+    word <- b.keySet -- a.keySet
   } yield idf(word)).sum
 }
 
