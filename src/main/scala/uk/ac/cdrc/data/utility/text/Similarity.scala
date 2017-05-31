@@ -3,9 +3,10 @@
   */
 package uk.ac.cdrc.data.utility.text
 
-import breeze.linalg.{max, min}
+import breeze.linalg.{DenseVector, argmin, max, min}
+import breeze.numerics.exp
 import uk.ac.cdrc.data.utility.text.entity.WordBag
-import WordBag._
+import uk.ac.cdrc.data.utility.text.entity.WordBag._
 
 /**
   * The similarity interface which allows overriding the distance method
@@ -40,20 +41,25 @@ trait LevenshteinDistance[T <: IndexedSeq[_]] {
 /**
   * Emphasize the difference at the beginning of the two strings
   */
-trait WeightedLevenshteinDistance[T <: IndexedSeq[_]] {
+trait WeightedLevenshteinDistance[U, T <: IndexedSeq[U]] {
+
+  def weight(charA: U, charB: U, pos: Double, op: Int): Double = exp(-pos/2.0d) * (1 - op)
 
   def edit_distance(a: T, b: T): Double = {
+    val refLen: Double = min(a.length, b.length)
     if (a.isEmpty) b.length
     else if (b.isEmpty) a.length
     else {
-      val dist = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if (i == 0 || j == 0) i + j else 0f)
+      val dist = Array.tabulate(a.length + 1, b.length + 1)((i, j) => if (i == 0 || j == 0) i + j else 0d)
       for (i <- 1 to a.length; j <- 1 to b.length) {
         dist(i)(j) =
           if (a(i-1) == b(j-1)) dist(i - 1)(j - 1)
-          else min(
-            dist(i - 1)(j),
-            dist(i)(j - 1),
-            dist(i - 1)(j - 1)) + (if (b(j-1) == ' ' || a(i-1) == ' ') 0.01f else (b.length - j) / b.length.toFloat)
+          else {
+            val choices = DenseVector(dist(i - 1)(j), // insert
+                                      dist(i)(j - 1)) // delete
+            val op = argmin(choices)
+            weight(a(i-1), b(j-1), min(i, j).toDouble / refLen, op) + choices(op)
+          }
       }
       dist(a.length)(b.length)
     }
@@ -74,7 +80,7 @@ trait LevenshteinWordSeqDistance
 
 trait WeightedLevenshteinStringDistance
   extends Similarity[String]
-    with WeightedLevenshteinDistance[Vector[Char]] {
+    with WeightedLevenshteinDistance[Char, Vector[Char]] {
   def distance(a: String, b: String): Double = edit_distance(a.toVector, b.toVector)
 }
 /**

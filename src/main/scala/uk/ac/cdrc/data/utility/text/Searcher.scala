@@ -3,6 +3,7 @@
   */
 package uk.ac.cdrc.data.utility.text
 
+import breeze.linalg.Counter
 import uk.ac.cdrc.data.utility.text.entity._
 
 /**
@@ -151,15 +152,15 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override
   * A predefined address searcher that should be used
   * @param pool a set of addresses in string
   */
-class AddressSearcher(implicit override val pool: IndexedSeq[String]) extends Searcher {
+class AddressSearcher(implicit override val pool: IndexedSeq[String], globalDFR: Counter[String, Double]=Counter[String, Double]()) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
     new NumberSpanAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
-    new WordBagAnalyzedPoolWithIDF(pool) with PreProcessingSearcher[WordBag] with WordSetDistanceWithIDF,
+    new WordBagAnalyzedPoolWithIDF(pool, globalDFR) with PreProcessingSearcher[WordBag] with WordSetDistanceWithIDF,
     new PooledSearcher with WeightedLevenshteinStringDistance
   )
 
-  val weights: Seq[Double] = Seq(100, 10, 10)
+  val weights: Seq[Double] = Seq(100, 10, 1)
 
   val comboSearcher = new CompositeSearcher(searchers, weights, 100)
 

@@ -67,14 +67,18 @@ class WordBagAnalyzedPool(override val pool: IndexedSeq[String])
 trait WordBagIDF
   extends Analyzer[String, WordBag]
     with AnalyzedPool[String, WordBag]{
-  lazy val idf: Counter[String, Double] = Counter.count((for {
+  val globalDFR: Counter[String, Double]
+  lazy val localDF: Counter[String, Double] = Counter.count((for {
     wb <- processed
     word <- wb.keySet
-  } yield word): _*).mapValues(x => 1 + math.log10(processed.length.toFloat / (x + 1)))
+  } yield word): _*).mapValues(_.toDouble)
+
+  lazy val idf: Counter[String, Double] = ((localDF * 0.5) + (globalDFR * (0.5 * processed.length))).
+    mapValues(x => 1 + math.log10(processed.length.toFloat / (x + 1)))
 }
 
 
-class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String])
+class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String], override val globalDFR: Counter[String, Double])
   extends WordBagIDF
     with NormalizedWordBagAnalyzer
 /**
