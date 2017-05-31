@@ -31,3 +31,19 @@ object DigitWordTokenizer extends Tokenizer {
     (digits ++ words).toIndexedSeq filter {!_.isEmpty}
   }
 }
+object WordTokenizer extends Tokenizer with NumPatterns {
+  val separator: Regex = "\\s+|-+".r
+  val numberFilters: Seq[Regex] = Seq(
+    numSpanPattern,
+    alphabetPattern,
+    orderedNumPattern,
+    numPattern
+  )
+  def numfilter(s: String): String =
+    (s /: numberFilters)((e, r) => r replaceAllIn(e, " "))
+
+  override def tokenize(s: String): IndexedSeq[String] =
+    for {w <- (separator split numfilter(s)).toSet.toIndexedSeq
+      if !w.isEmpty
+    } yield w
+}
