@@ -19,6 +19,10 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
     check((a: String, b: String) => distance(a, b) == LD.distance(a, b))
   }
 
+  "Weighted Levenshtein distance" should "emphasize the error at the beginning" in new WeightedLevenshteinStringDistance {
+    distance("12 34567890abcdefg", "1234567890abcdefg") should be > distance("1234567890abcde fg", "1234567890abcdefg") * 100
+  }
+
   "Substrings" should "have a distance from the missing parts" in new LevenshteinStringDistance {
     check((a: String, b: String) => distance(a + b, b) == a.length)
     check((a: String, b: String) => distance(b + a, b) == a.length)

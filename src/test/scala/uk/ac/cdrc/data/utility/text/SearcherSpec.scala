@@ -296,7 +296,7 @@ class SearcherSpec extends FlatSpec with Matchers{
 
   it should "fail when the only difference is the punctuation" in {
     val addrs = IndexedSeq(
-      "gggs  aaa  ccc ccc main  rrr  eee",
+      "gggs aaa  ccc ccc main  rrr  eee",
       "gggs aaa  ccc ccc main  rrr  eee",
       "gggs hhh aaa  ccc ccc main  rrr  eee"
     )

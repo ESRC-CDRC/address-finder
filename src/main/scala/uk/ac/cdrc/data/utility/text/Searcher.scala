@@ -160,7 +160,7 @@ class AddressSearcher(implicit override val pool: IndexedSeq[String], globalDFR:
     new PooledSearcher with WeightedLevenshteinStringDistance
   )
 
-  val weights: Seq[Double] = Seq(100, 10, 1)
+  val weights: Seq[Double] = Seq(100, 10, 16)
 
   val comboSearcher = new CompositeSearcher(searchers, weights, 100)
 
@@ -169,5 +169,5 @@ class AddressSearcher(implicit override val pool: IndexedSeq[String], globalDFR:
 
 object AddressSearcher {
   def apply() = EmptySearcher
-  def apply(implicit pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher
+  def apply(implicit pool: IndexedSeq[String], globalDFR: Counter[String, Double]=Counter[String, Double]()): Searcher = if (pool.isEmpty) EmptySearcher else new AddressSearcher
 }

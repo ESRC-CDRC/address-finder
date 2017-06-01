@@ -43,7 +43,12 @@ trait LevenshteinDistance[T <: IndexedSeq[_]] {
   */
 trait WeightedLevenshteinDistance[U, T <: IndexedSeq[U]] {
 
-  def weight(charA: U, charB: U, pos: Double, op: Int): Double = exp(-pos/2.0d) * (1 - op)
+  def sigmoid(x: Double): Double = 1d / (1d + exp(-x))
+
+  val effectUpperBound = 0.1d
+  val smooth_factor = 0.1d
+
+  def weight(charA: U, charB: U, pos: Double, op: Int): Double = sigmoid(-(pos-effectUpperBound)/smooth_factor) * (1 - op)
 
   def edit_distance(a: T, b: T): Double = {
     val refLen: Double = min(a.length, b.length)
