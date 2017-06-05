@@ -31,8 +31,8 @@ class SimilaritySpec extends FlatSpec with Matchers with Checkers {
 
   "NumberSpanDistance" should "work" in new NumberSpanAnalyzer with NumberSpanDistance {
     implicit def toProcessed(s: String): IndexedSeq[String] = process(s)
-    distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0d)
-    distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (1d)
+    distance("aaa bbb ccc 1-5 ccc", "bbcc dd 1-3,4,5 ff") should be (0.1d)
+    distance("aaa bbb ccc 1 ccc", "bbcc dd 1,5 ff") should be (0.5d)
     distance("aaa bbb ccc 1,5-6 ccc", "bbcc dd ff") should be (0d)
     distance("aaa bbb ccc ccc", "bbcc dd ff") should be (0d)
 

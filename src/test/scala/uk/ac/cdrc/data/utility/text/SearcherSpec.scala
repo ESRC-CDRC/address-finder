@@ -183,7 +183,7 @@ class SearcherSpec extends FlatSpec with Matchers{
       "14 ggg  aaa  ccc ccc main  rrr  eee"
     )
     val s = AddressSearcher(addrs)
-    val r = s search "6-7 ggg aaa  ccc  main  rrr"
+    val r = s search "6-8 ggg aaa  ccc  main  rrr"
     inside(r) {
       case Some(rs) =>
         rs shouldNot be ('multiTops)

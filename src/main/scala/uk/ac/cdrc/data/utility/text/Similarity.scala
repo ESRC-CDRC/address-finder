@@ -95,10 +95,13 @@ trait WeightedLevenshteinStringDistance
 trait NumberSpanDistance extends Similarity[IndexedSeq[String]] {
 
   def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double = {
+    val aSet = a.toSet
+    val bSet = b.toSet
+    val union: Double = (bSet | aSet).size
     if (b.isEmpty)
       0.0d
     else
-      (b.toSet -- a.toSet).size
+      ((b.toSet -- a.toSet).size + (a.toSet -- b.toSet).size * 0.5) / union
   }
 }
 
@@ -133,9 +136,9 @@ trait NumberSeqDistance extends Similarity[IndexedSeq[String]] with CommonPrefix
 /**
   * Binarise the overlaping distance
   */
-trait StrictNumberOverlapDistance extends NumberOverlapDistance with NumberSeqDistance{
+trait StrictNumberOverlapDistance extends NumberSpanDistance with NumberSeqDistance{
   override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
-    super[NumberOverlapDistance].distance(a, b) + super[NumberSeqDistance].distance(a, b)
+    super[NumberSpanDistance].distance(a, b) + super[NumberSeqDistance].distance(a, b)
 }
 
 /**

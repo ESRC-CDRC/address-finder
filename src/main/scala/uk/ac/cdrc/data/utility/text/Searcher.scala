@@ -73,10 +73,10 @@ trait PreProcessingSearcher[U] extends Searcher {
   self: Analyzer[String, U] with AnalyzedPool[String, U] with Similarity[U] =>
 
   override def search(q: String): Option[SearchResult] = {
-    val qwb = process(q)
+    val processedQuery = process(q)
     val scores = for {
       (u, i) <- processed.zipWithIndex
-    } yield (i, distance(u, qwb))
+    } yield (i, distance(u, processedQuery))
 
     Some(SearchResult(scores, matchScoreLimit)(pool))
   }
