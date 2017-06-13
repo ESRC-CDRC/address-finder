@@ -117,7 +117,7 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
       pos = m.start
     } yield pos -> m.toString
     val alphabets = for {
-      ptn <- Seq(alphabetPattern, alphabetFlatPattern)
+      ptn <- Seq(alphabetSuffixPattern, alphabetFlatPattern)
       m <- (ptn findAllIn s).matchData
     } yield (Character.getNumericValue(m.group(1).charAt(0)) - Character.getNumericValue('a') + 1).toString
     val allNums = (numSpan ++ nums).toVector
@@ -125,8 +125,31 @@ trait NumberSpanAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPa
   }
 }
 
+/**
+  * Number analyzer and pooled storage
+  */
+trait NumberAnalyzer extends Analyzer[String, IndexedSeq[String]] with NumPatterns{
+
+  override def process(s: String): IndexedSeq[String] = {
+    val nums = for {
+      m <- (numPattern findAllIn s).matchData
+      pos = m.start
+    } yield pos -> m.toString
+    val alphabets = for {
+      ptn <- Seq(alphabetSuffixPattern, alphabetPattern)
+      m <- (ptn findAllIn s).matchData
+    } yield (Character.getNumericValue(m.group(1).charAt(0)) - Character.getNumericValue('a') + 1).toString
+    alphabets.toVector ++ nums.toSet.toVector.sortBy((x: (Int, String)) => x._1 -> x._2.toLong).map(_._2.toString)
+  }
+}
 class NumberSpanAnalyzedPool(override val pool: IndexedSeq[String])
     extends NumberSpanAnalyzer
       with PunctuationRemoval[IndexedSeq[String]]
       with NumberNormalizer[IndexedSeq[String]]
       with AnalyzedPool[String, IndexedSeq[String]]
+
+class NumberAnalyzedPool(override val pool: IndexedSeq[String])
+  extends NumberAnalyzer
+    with PunctuationRemoval[IndexedSeq[String]]
+    with NumberNormalizer[IndexedSeq[String]]
+    with AnalyzedPool[String, IndexedSeq[String]]

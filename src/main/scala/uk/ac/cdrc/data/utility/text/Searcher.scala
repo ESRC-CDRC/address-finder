@@ -155,7 +155,7 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override
 class AddressSearcher(implicit override val pool: IndexedSeq[String], globalDFR: Counter[String, Double]=Counter[String, Double]()) extends Searcher {
 
   val searchers: Seq[Searcher] = Seq(
-    new NumberSpanAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
+    new NumberAnalyzedPool(pool) with PreProcessingSearcher[IndexedSeq[String]] with StrictNumberOverlapDistance,
     new WordBagAnalyzedPoolWithIDF(pool, globalDFR) with PreProcessingSearcher[WordBag] with WordSetDistanceWithIDF,
     new PooledSearcher with WeightedLevenshteinStringDistance
   )

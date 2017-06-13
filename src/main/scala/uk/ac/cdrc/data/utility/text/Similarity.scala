@@ -137,8 +137,14 @@ trait NumberSeqDistance extends Similarity[IndexedSeq[String]] with CommonPrefix
   * Binarise the overlaping distance
   */
 trait StrictNumberOverlapDistance extends NumberSpanDistance with NumberSeqDistance{
-  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double =
-    super[NumberSpanDistance].distance(a, b) + super[NumberSeqDistance].distance(a, b)
+  override def distance(a: IndexedSeq[String], b: IndexedSeq[String]): Double ={
+
+    val d = super[NumberSpanDistance].distance(a, b) + super[NumberSeqDistance].distance(a, b)
+    if (d > 0.1d)
+      1.0d
+    else
+      0.0d
+  }
 }
 
 /**

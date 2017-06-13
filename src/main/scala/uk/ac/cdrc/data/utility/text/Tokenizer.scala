@@ -13,8 +13,9 @@ trait NumPatterns {
   val numSpanPattern: Regex = "([1-9]\\d*)\\s*-\\s*(\\d+)".r
   val numPattern: Regex = "([1-9]\\d*)|0\\b".r
   val orderedNumPattern: Regex = "\\b(1st)|(2nd)|(3rd)\\b".r
-  val alphabetPattern: Regex = "[1-9]\\d*([a-z])\\b".r
+  val alphabetSuffixPattern: Regex = "[1-9]\\d*([a-z])\\b".r
   val alphabetFlatPattern: Regex = "flat ([a-z])\\b".r
+  val alphabetPattern: Regex = "\\b([a-z])\\b".r
 }
 
 /**
@@ -35,6 +36,7 @@ object WordTokenizer extends Tokenizer with NumPatterns {
   val separator: Regex = "\\s+|-+".r
   val numberFilters: Seq[Regex] = Seq(
     numSpanPattern,
+    alphabetSuffixPattern,
     alphabetPattern,
     orderedNumPattern,
     numPattern
