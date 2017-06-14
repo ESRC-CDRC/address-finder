@@ -26,9 +26,11 @@ trait PreprocessedAnalyzer[U] extends Analyzer[String, U] {
 
 trait PunctuationRemoval[U] extends PreprocessedAnalyzer[U] {
 
-  private val punctuationPattern: Regex = "[,.'/]".r
+  private val sepPunctuationPattern: Regex = "[,./]".r
+  private val jointPunctuationPattern: Regex = "[']".r
 
-  abstract override def preprocess(e: String): String = punctuationPattern replaceAllIn(super.preprocess(e), " ")
+  abstract override def preprocess(e: String): String =
+    jointPunctuationPattern replaceAllIn (sepPunctuationPattern replaceAllIn(super.preprocess(e), " "), "")
 }
 
 trait NumberRemoval[U] extends PreprocessedAnalyzer[U] with NumPatterns{
