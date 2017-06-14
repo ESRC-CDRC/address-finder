@@ -3,7 +3,7 @@ resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositor
 lazy val address_finder = (project in file(".")).
   settings(inThisBuild(List(
     organization := "uk.ac.cdrc.data",
-    version := "0.3-SNAPSHOT",
+    version := "0.3",
     scalaVersion := "2.11.8",
     crossScalaVersions := Seq("2.10.8"))),
     name := "address-finder",
