@@ -482,4 +482,30 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.matched should be (None)
     }
   }
+
+  it should "match with apostrophe removed" in {
+    val addrs = IndexedSeq(
+      "10 aaabbb's road"
+    )
+
+    val s = AddressSearcher(addrs)
+    val r = s search "10 aaabbbs road"
+    inside(r) {
+      case Some(rs) =>
+        rs.orderedHits(0)._2 should be < 1.0d
+    }
+  }
+
+  it should "not matching to wrong number 2" in {
+    val addrs = IndexedSeq(
+      "1a aaabbbs road"
+    )
+
+    val s = AddressSearcher(addrs)
+    val r = s search "1 aaabbb road"
+    inside(r) {
+      case Some(rs) =>
+        rs.matched should be (None)
+    }
+  }
 }
