@@ -508,4 +508,20 @@ class SearcherSpec extends FlatSpec with Matchers{
         rs.matched should be (None)
     }
   }
+
+  it should "match to the second" in {
+    val addrs = IndexedSeq(
+      "3 aaabbbs road",
+      "1 aaabbb road",
+      "1 aaabbbs road",
+      "2 aaabbbs road"
+    )
+
+    val s = AddressSearcher(addrs)
+    val r = s search "1 aaabbb road"
+    inside(r) {
+      case Some(rs) =>
+        rs.pop.matched should be (Some(addrs(2)))
+    }
+  }
 }
