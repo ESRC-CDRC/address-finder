@@ -9,6 +9,7 @@ lazy val address_finder = (project in file(".")).
     name := "address-finder",
     libraryDependencies  ++= Seq(
       "org.scalanlp" %% "breeze" % "0.13",
+      "org.scala-graph" %% "graph-core" % "1.11.5",
       "org.scalanlp" %% "breeze-natives" % "0.13",
       "org.scalatest" %% "scalatest" % "2.2.6" % "test",
       "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
