@@ -49,10 +49,10 @@ case class SearchResult(hits: Seq[(Int, Double)], scoreLimit: Double = Double.Ma
   def matched: Option[String] = if (!multiTops && orderedHits.head._2 < scoreLimit) Some(top) else None
 
   /**
-    * Return a new result set by removing the top matched
-    * @return
+    * Remove the top matching
+    * @return a new result set by removing the top matched
     */
-  def pop: SearchResult = SearchResult(orderedHits.tail, scoreLimit)
+  def pop: Option[SearchResult] = if(orderedHits.length > 1) Some(SearchResult(orderedHits.tail, scoreLimit)) else None
 }
 
 

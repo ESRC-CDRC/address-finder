@@ -521,7 +521,10 @@ class SearcherSpec extends FlatSpec with Matchers{
     val r = s search "1 aaabbb road"
     inside(r) {
       case Some(rs) =>
-        rs.pop.matched should be (Some(addrs(2)))
+        inside(rs.pop) {
+          case Some(rs2) =>
+            rs2.matched should be (Some(addrs(2)))
+        }
     }
   }
 }
