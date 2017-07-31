@@ -157,6 +157,7 @@ class CompositeSearcher(searchers: Seq[Searcher], weights: Seq[Double], override
 /**
   * A predefined address searcher that should be used
   * @param pool a set of addresses in string
+  * @param globalDFR A Counter object specifying the global docFreq (0<=df<=1) for each term
   */
 class AddressSearcher(implicit override val pool: IndexedSeq[String], globalDFR: Counter[String, Double]=Counter[String, Double]()) extends Searcher {
 
