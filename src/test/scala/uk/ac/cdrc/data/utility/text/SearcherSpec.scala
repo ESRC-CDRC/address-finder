@@ -527,4 +527,53 @@ class SearcherSpec extends FlatSpec with Matchers{
         }
     }
   }
+  it should "match to one" in {
+    val addrs = IndexedSeq(
+      "10a hww court hww road west kkk mmm",
+      "10a hww road mmm",
+      "10 hww court hww road west kkk mmm",
+      "1a hww court hww road west kkk mmm",
+      "1a hww road mmm",
+      "1st 2nd floor 12 a hww road mmm",
+      "2a hww court hww road west kkk mmm",
+      "2a hww road mmm",
+      "3a hww court hww road west kkk mmm",
+      "3b hww court hww road west kkk mmm",
+      "3c hww court hww road west kkk mmm",
+      "4a hww court hww road west kkk mmm",
+      "4a hww road mmm",
+      "4 hww court hww road west kkk mmm",
+      "5a hww court hww road west kkk mmm",
+      "5 hww court hww road west kkk mmm",
+      "5th floor, north 11 hww court hww road mmm",
+      "5th floor, sth 12 hww court hww road mmm",
+      "6a hww court hww road west kkk mmm",
+      "6 hww court hww road west kkk mmm",
+      "7a hww road mmm",
+      "7 hww court hww road west kkk mmm",
+      "8a hww court hww road west kkk mmm",
+      "8-a hww road mmm",
+      "8 hww court hww road west kkk mmm",
+      "9a hww court hww road west kkk mmm",
+      "9a hww road mmm",
+      "9 hww court hww road west kkk mmm",
+      "fifth floor south 12 hww court hww road mmm",
+      "fifth nth 11 hww court hww road mmm",
+      "flat 1b, hww court hww road mmm",
+      "flat 1, hww court hww road mmm",
+      "flat 2 hww court hww road west kkk mmm",
+      "flat 7a hww court hww road mmm",
+      "hww court hww road mmm"
+    )
+
+    val s = AddressSearcher(addrs)
+    val r = s search "flat 12 hww court hww road mmm"
+    inside(r) {
+      case Some(rs) =>
+        inside(rs.pop) {
+          case Some(rs2) =>
+            rs2.matched should be (Some(addrs(2)))
+        }
+    }
+  }
 }
