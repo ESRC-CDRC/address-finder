@@ -1,7 +1,7 @@
 package uk.ac.cdrc.data.utility.text
 
 import breeze.linalg.Counter
-import uk.ac.cdrc.data.utility.text.entity.WordBag
+import uk.ac.cdrc.data.utility.text.entity.{NGramBag, WordBag}
 
 import scala.util.matching.Regex
 
@@ -83,6 +83,23 @@ trait WordBagIDF
 class WordBagAnalyzedPoolWithIDF(override val pool: IndexedSeq[String], override val globalDFR: Counter[String, Double])
   extends WordBagIDF
     with NormalizedWordBagAnalyzer
+
+/**
+  * NGrams from strings
+  */
+trait NGramBagAnalyzer extends Analyzer[String, NGramBag]{
+
+  override def process(e: String): NGramBag = NGramBag(e)
+}
+
+trait NGramBagAnalyzerWithoutNums
+  extends NGramBagAnalyzer
+    with NumberRemoval[NGramBag]
+
+class NGramBagAnalyzedPool(override val pool: IndexedSeq[String])
+  extends NGramBagAnalyzerWithoutNums
+    with AnalyzedPool[String, NGramBag]
+
 /**
   * Word sequence based analyzer and pooled storage
   */

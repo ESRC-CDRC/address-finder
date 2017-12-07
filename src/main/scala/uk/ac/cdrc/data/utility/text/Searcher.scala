@@ -125,6 +125,20 @@ object WordBagSearcher {
 }
 
 /**
+  * A ngram bag based searcher
+  * @param pool a pool of strings
+  */
+class NGramBagSearcher(implicit override val pool: IndexedSeq[String]) extends NGramBagAnalyzedPool(pool)
+  with NGramBagAnalyzer
+  with PreProcessingSearcher[NGramBag]
+  with NGramBagDistance
+
+
+object NGramBagSearcher {
+  def apply() = EmptySearcher
+  def apply(implicit pool: IndexedSeq[String]): Searcher = if (pool.isEmpty) EmptySearcher else new NGramBagSearcher
+}
+/**
   * A searcher that combines results from a set of searchers
   * @param searchers a list of searchers with the same collection
   * @param weights a list of numbers deciding the weights for each searcher

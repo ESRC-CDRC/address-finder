@@ -5,7 +5,7 @@ package uk.ac.cdrc.data.utility.text
 
 import breeze.linalg.{DenseVector, argmin, max, min}
 import breeze.numerics.exp
-import uk.ac.cdrc.data.utility.text.entity.WordBag
+import uk.ac.cdrc.data.utility.text.entity.{NGramBag, WordBag}
 import uk.ac.cdrc.data.utility.text.entity.WordBag._
 
 /**
@@ -154,6 +154,12 @@ trait WordBagDistance extends Similarity[WordBag] {
   def distance(a: WordBag, b: WordBag): Double = (wordBag2Counter(b) - wordBag2Counter(a)).pnorm
 }
 
+/**
+  * N-gram vector difference
+  */
+trait NGramBagDistance extends Similarity[NGramBag] {
+  def distance(a: NGramBag, b: NGramBag): Double = (b.data - a.data).pnorm
+}
 /**
   * Word set difference
   */

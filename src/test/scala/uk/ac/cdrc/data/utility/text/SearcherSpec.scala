@@ -56,6 +56,22 @@ class SearcherSpec extends FlatSpec with Matchers{
     }
   }
 
+  "A ngram search" should "find mispelling" in {
+    val addr = IndexedSeq(
+      "hellosky place summer road seatown seatown",
+      "helloworld place summer road seatown seatown"
+    )
+    val s = NGramBagSearcher(addr)
+    val r = s search "hello world summer road seatown"
+    inside(r) {
+      case Some(rs) => {
+        rs.hits should have size 2
+        rs.orderedHits(0)._1 should be (1)
+        rs.orderedHits(0)._2 should be < rs.orderedHits(1)._2
+      }
+    }
+  }
+
   "An AddressSearcher" should "deal with single candidate" in {
     val s = AddressSearcher(IndexedSeq("ggg  196  aaa  ccc ccc main  rrr  eee"))
     val r = s search "ggg 20000000000 aaa  ccc  main  rrr"
